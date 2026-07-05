@@ -1,0 +1,56 @@
+# BNAI V1.0 ("Benny") -- Stage B conversational SFT (spec Section 4).
+# Not counted in the Chinchilla pretraining budget.
+
+base_checkpoint: "checkpoints/base_ternary/latest.pt"
+
+model:
+  # Must match base_ternary.yaml exactly -- SFT continues training the same
+  # architecture from the pretrained checkpoint.
+  vocab_size: 32000
+  d_model: 576
+  n_layers: 14
+  n_heads: 9
+  ffn_hidden: 1536
+  context_len: 2048
+  act_bits: 8
+  ternary_weights: true
+
+training:
+  # Deliberately small relative to the 1.5B-token base pretrain -- oversized
+  # SFT risks overfitting to surface chat patterns (spec Section 4).
+  target_tokens: 40_000_000
+  effective_batch_tokens: 131_072
+  micro_batch_size: 8
+  peak_lr: 5.0e-5
+  warmup_fraction: 0.03
+  min_lr_fraction: 0.10
+  adam_beta1: 0.9
+  adam_beta2: 0.95
+  weight_decay: 0.0
+  grad_clip_norm: 1.0
+  amp_dtype: bfloat16
+  log_interval_steps: 10
+  checkpoint_interval_steps: 100
+  export_interval_steps: 500
+
+  # "Alignment tax" guardrail (spec Section 4): if base-pretrain held-out
+  # perplexity regresses by more than this fraction during SFT, reduce
+  # epochs/LR rather than continuing blindly.
+  max_base_ppl_regression: 0.10
+
+data:
+  sft_dataset: "HuggingFaceH4/ultrachat_200k"
+  sft_split: "train_sft"
+  eval_dataset: "OpenAssistant/oasst2"
+  turns_field: "messages"
+  val_fraction: 0.02
+
+  # Same corpus/split as base_ternary.yaml's data section, used to measure
+  # "alignment tax" (spec Section 4): re-evaluated periodically during SFT
+  # and compared against the base checkpoint's own val perplexity at step 0.
+  base_val_dataset: "HuggingFaceFW/fineweb-edu"
+  base_val_split: "train"
+  base_val_text_field: "text"
+  base_val_fraction: 0.008
+
+output_dir: "checkpoints/sft"

@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.pyc
+*.egg-info/
+.venv/
+
+# Training artifacts (large, not meant to live in git -- see README for retrain instructions)
+checkpoints/
+
+# Data
+*.jsonl
+data/raw/
+
+# Rust
+runtime/target/
+
+# Node / Next.js
+web/node_modules/
+web/.next/
+web/out/
+web/.vercel/
+
+# OS / editor
+.DS_Store
+.vscode/

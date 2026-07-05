@@ -1,0 +1,52 @@
+# BNAI V1.0 ("Benny") -- Stage A base pretrain, ternary model.
+# Chinchilla-optimal budget per spec Section 3: tokens ~= 20 x params.
+
+model:
+  vocab_size: 32000
+  d_model: 576
+  n_layers: 14
+  n_heads: 9
+  ffn_hidden: 1536
+  context_len: 2048
+  act_bits: 8
+  ternary_weights: true
+
+training:
+  # ~75M params x 20 tokens/param ~= 1.5B tokens.
+  target_tokens: 1_500_000_000
+  # Effective batch size target: 256 sequences x 2048 tokens ~= 0.5M tokens/step.
+  # Section 5: 24GB unified memory on the M5 almost certainly can't fit this
+  # in one forward/backward pass -- use grad accumulation, not a literal batch.
+  effective_batch_tokens: 524_288
+  micro_batch_size: 8          # sequences per forward/backward pass; tune down if OOM on MPS
+  # grad_accum_steps is derived at runtime: effective_batch_tokens / (micro_batch_size * context_len)
+
+  peak_lr: 3.0e-4
+  warmup_fraction: 0.02
+  min_lr_fraction: 0.10        # cosine decays to 10% of peak_lr
+  adam_beta1: 0.9
+  adam_beta2: 0.95
+  weight_decay: 0.1
+  grad_clip_norm: 1.0
+
+  # Precision: bf16 mixed precision for latent weights/activations; ternary
+  # quantization is applied inline per BitLinear forward (Section 3/5).
+  amp_dtype: bfloat16
+
+  log_interval_steps: 10
+  checkpoint_interval_steps: 250   # frequent per Section 5 -- laptop training has no redundancy
+  export_interval_steps: 1000      # periodic exported ternary checkpoint for mid-run eval
+
+  # Section 5 fallback ladder if measured tok/s makes 1.5B tokens impractical:
+  # (a) trim context_len/d_model slightly, (b) reduce target_tokens below the
+  # strict Chinchilla point and document the tradeoff, (c) move to rented
+  # cloud compute. Do not silently change this config without updating
+  # docs/training_log.md.
+
+data:
+  train_dataset: "HuggingFaceFW/fineweb-edu"
+  train_split: "train"
+  text_field: "text"
+  val_fraction: 0.008   # 0.5-1% held out, per spec Section 4
+
+output_dir: "checkpoints/base_ternary"
