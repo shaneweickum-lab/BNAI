@@ -1,0 +1,35 @@
+[package]
+name = "bnai-runtime"
+version = "0.1.0"
+edition = "2021"
+description = "Ternary-weight (BitNet b1.58 style) transformer inference runtime for BNAI/Benny, compiled to WASM."
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+# Only bindings we actually need to cross the JS <-> WASM boundary.
+wasm-bindgen = "0.2"
+# Metadata + tokenizer JSON parsing (both files are small; no need for a
+# hand-rolled JSON parser).
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+# GPT-2 style pretokenization needs \p{L}/\p{N} unicode-property classes,
+# which std `regex`-free hand rolling would be painful/error-prone to get
+# right for; the `regex` crate is pure-Rust and wasm32-friendly. (Its
+# alternation-based pattern doesn't support lookahead, so the whitespace-run
+# splitting -- see tokenizer.rs -- is implemented by hand instead of via a
+# single regex, but the character-class matching still uses this crate.)
+regex = "1"
+
+[profile.release]
+opt-level = 3
+lto = true
+
+[package.metadata.wasm-pack.profile.release]
+# `wasm-opt` (binaryen) would shrink the binary further, but wasm-pack
+# fetches it from a GitHub release at build time, which this sandbox's
+# network policy blocks (crates.io/npm are allowlisted, github.com release
+# assets are not). Ship the plain wasm-bindgen output instead; see the
+# runtime task report for the resulting (slightly larger) file size.
+wasm-opt = false

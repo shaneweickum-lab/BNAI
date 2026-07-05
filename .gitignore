@@ -13,6 +13,7 @@ data/raw/
 
 # Rust
 runtime/target/
+runtime/pkg/
 
 # Node / Next.js
 web/node_modules/
