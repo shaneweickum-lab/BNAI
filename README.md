@@ -1,12 +1,12 @@
 # Benny — BNAI V1.0
 
-A 75M-parameter, ternary-weight ("BitNet b1.58"-style) language model,
+A 125M-parameter (123.7M measured), ternary-weight ("BitNet b1.58"-style) language model,
 trained Chinchilla-optimally and served entirely client-side in the browser
 via a from-scratch Rust→WASM inference engine. No inference server — once
 the page loads, generation runs on the visitor's own machine.
 
 The point of this project is the systems engineering, not raw model
-capability: a 75M model can't compete with frontier assistants on knowledge
+capability: a 125M model can't compete with frontier assistants on knowledge
 or reasoning, and the demo says so. What it demonstrates instead: a
 quantization-aware training loop implemented from scratch (BitLinear +
 straight-through estimator), a packed weight format designed around a
@@ -47,8 +47,8 @@ cd web && npm install && npm run build && npm run dev
 
 ## Architecture summary
 
-Decoder-only transformer, LLaMA-family block shape: d_model 576, 14 layers,
-9 heads (head_dim 64), SwiGLU FFN (hidden 1536), RMSNorm pre-norm, RoPE, no
+Decoder-only transformer, LLaMA-family block shape: d_model 768, 14 layers,
+12 heads (head_dim 64), SwiGLU FFN (hidden 2048), RMSNorm pre-norm, RoPE, no
 biases, 32k vocab, 2048 context. Every attention/FFN projection is a
 `BitLinear` layer — weights are quantized to {-1,0,+1} via absmean scaling
 during the forward pass, trained with a straight-through estimator so
@@ -57,8 +57,13 @@ identity. The tied embedding/LM-head table stays fp16 (it's a lookup, not a
 matmul — quantizing it buys no speed, costs quality). Full details:
 `docs/model_card.md`.
 
-**Measured parameter count: 74,187,072** (`model/tests/test_architecture.py`
-verifies this against the ~74.2M target, ±5%).
+**Measured parameter count: 123,688,704** ("125M-class" —
+`model/tests/test_architecture.py` verifies this against a ~125M target,
+±5%). `d_model`=768/`n_heads`=12 deliberately match GPT-2-small's width;
+see `docs/model_card.md` for why this size and not bigger: Chinchilla token
+budget and per-token compute both scale with params, so total training
+compute scales as roughly `params²` — this size already costs ~2.8x the
+compute of the original ~74.2M design point.
 
 ## Retrain / re-export / redeploy, end to end
 
@@ -69,7 +74,7 @@ trained model. Every step below is a script in this repo — no step is a
 ### 0. Where this needs to run
 
 Real training (Phase 3/4/5 below) needs a machine with enough compute to
-push ~1.5B+ tokens through a 75M-param model in a reasonable number of
+push ~2.47B+ tokens through a 123.7M-param model in a reasonable number of
 sessions — this repo was built and spec'd against a MacBook Pro M5 (24GB
 unified memory, PyTorch MPS backend, no CUDA). All the code auto-detects
 `cuda` → `mps` → `cpu` and runs on any of them, but CPU-only will be far too
@@ -99,9 +104,11 @@ python model/train.py --config model/configs/base_ternary.yaml \
     --smoke-test-steps 200
 ```
 
-Watch the printed `tok/s`. Compare against the measured fp16 baseline of
-5,600 tok/s on the M5 and the scenario ladder in `model/configs/base_ternary.yaml`'s
-comments. Record the result in `docs/training_log.md`. If the resulting
+Watch the printed `tok/s`. Compare against a freshly-measured fp16 baseline
+run at this same ~123.7M architecture — the spec's original 5,600 tok/s
+figure was measured at the original ~74.2M design point and doesn't
+directly transfer after the resize (see `docs/training_log.md`). Record the
+result there. If the resulting
 full-run wall-clock estimate is impractical, use the fallback ladder there
 (trim context/width, reduce token budget and document it, or move to rented
 cloud compute) rather than silently changing the recipe.
@@ -160,7 +167,7 @@ size/param-count figures across `web/app/*` and `docs/*` — they're currently
 the placeholder's measured numbers, not invented ones, but they'll change
 once this is a real trained model with a real weight distribution... though
 note the *packed size* is fixed by the format regardless of weight values,
-so 48.05MB / 74.2M params will stay accurate unless you change the
+so 69.02MB / 123.7M params will stay accurate unless you change the
 architecture).
 
 ### 7. Build the WASM runtime and deploy
@@ -185,14 +192,19 @@ assets (the Next.js app, the WASM binary, the packed model file).
   accumulation (`micro_batch_size` × `grad_accum_steps` to reach
   `effective_batch_tokens`) rather than one large batch — tune
   `micro_batch_size` down in the config if you hit OOM.
-- **Throughput / wall-clock**: measured fp16 baseline on the M5 is 5,600
-  tok/s. Ternary training adds quantization overhead per forward/backward
-  pass that fp16 doesn't have, and MPS lacks CUDA's fused ternary-training
-  kernels — expect somewhere between ~2,800 and ~5,000 tok/s depending on
-  overhead, i.e. roughly 3.5-6 days of *continuous* compute for the full
-  1.5B-token budget, and correspondingly more real calendar time given a
-  laptop isn't run at 100% utilization nonstop. Measure, don't assume — the
-  Phase 3 smoke test above gives you the real number for this machine.
+- **Throughput / wall-clock**: the spec's original fp16 baseline of 5,600
+  tok/s on the M5 was measured at the original ~74.2M design point, not the
+  current ~123.7M ("125M-class") architecture — re-measure it here rather
+  than reusing that number (a rough scaling estimate is ~3,360 tok/s, but
+  treat that as a placeholder guess, not a plan input). Ternary training
+  adds quantization overhead per forward/backward pass that fp16 doesn't
+  have, and MPS lacks CUDA's fused ternary-training kernels. At this size,
+  expect somewhere in the range of ~10-17 days of *continuous* compute for
+  the full 2.47B-token budget (~2.8x the original design point's estimated
+  3.5-6 days, since Chinchilla-optimal compute scales roughly as params²),
+  and correspondingly more real calendar time given a laptop isn't run at
+  100% utilization nonstop. Measure, don't assume — the Phase 3 smoke test
+  above gives you the real number for this machine at this size.
 - **No distributed training** — single-device only, by design; there's no
   multi-GPU scaffolding to configure or debug.
 
@@ -200,12 +212,12 @@ assets (the Next.js app, the WASM binary, the packed model file).
 
 | Piece | Status |
 |---|---|
-| Architecture + params (74.2M) | Real, tested (`model/tests/`) |
+| Architecture + params (123.7M, "125M-class") | Real, tested (`model/tests/`) |
 | Tokenizer algorithm | Real, tested |
 | Tokenizer *vocabulary* shipped in this repo | Placeholder — trained on synthetic text |
 | Training/SFT/export/eval code | Real, tested end-to-end on tiny local smoke tests |
 | Actual trained model weights | **Not real yet** — `web/public/model/benny-placeholder.bnai` has random weights |
-| Packed file size (48.05MB) / compression ratio (~3.1x) | Real measurement (packing is weight-value-independent) |
+| Packed file size (69.02MB) / compression ratio (~3.58x) | Real measurement (packing is weight-value-independent) |
 | Rust WASM runtime | See `runtime/` — built against the placeholder artifact |
 | Web demo | See `web/` — built against the placeholder artifact and a documented worker interface |
 | Any loss/perplexity/eval/benchmark number | **TBD** — needs the real training run |

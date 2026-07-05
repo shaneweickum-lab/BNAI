@@ -77,7 +77,7 @@ def test_placeholder_model_matches_full_spec_param_budget():
     shrink to whatever tiny vocab a toy tokenizer happens to produce -- the
     point of the placeholder artifact is to measure the real target file size."""
     model = _build_placeholder_model()
-    target = 74_200_000
+    target = 125_000_000
     assert abs(model.num_parameters() - target) / target < 0.05
 
 

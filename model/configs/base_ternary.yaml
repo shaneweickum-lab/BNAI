@@ -2,18 +2,23 @@
 # Chinchilla-optimal budget per spec Section 3: tokens ~= 20 x params.
 
 model:
+  # ~123.7M params ("125M-class") -- d_model=768/n_heads=12 matches
+  # GPT-2-small's width, head_dim=64/n_layers=14 carried over from the
+  # original ~74.2M design. See docs/model_card.md for why this size (not
+  # bigger) was chosen: Chinchilla token budget x per-token compute scale
+  # as params^2, so this already costs ~2.8x the compute of the original design.
   vocab_size: 32000
-  d_model: 576
+  d_model: 768
   n_layers: 14
-  n_heads: 9
-  ffn_hidden: 1536
+  n_heads: 12
+  ffn_hidden: 2048
   context_len: 2048
   act_bits: 8
   ternary_weights: true
 
 training:
-  # ~75M params x 20 tokens/param ~= 1.5B tokens.
-  target_tokens: 1_500_000_000
+  # ~123.7M params x 20 tokens/param ~= 2.47B tokens.
+  target_tokens: 2_470_000_000
   # Effective batch size target: 256 sequences x 2048 tokens ~= 0.5M tokens/step.
   # Section 5: 24GB unified memory on the M5 almost certainly can't fit this
   # in one forward/backward pass -- use grad accumulation, not a literal batch.
@@ -37,7 +42,7 @@ training:
   checkpoint_interval_steps: 250   # frequent per Section 5 -- laptop training has no redundancy
   export_interval_steps: 1000      # periodic exported ternary checkpoint for mid-run eval
 
-  # Section 5 fallback ladder if measured tok/s makes 1.5B tokens impractical:
+  # Section 5 fallback ladder if measured tok/s makes 2.47B tokens impractical:
   # (a) trim context_len/d_model slightly, (b) reduce target_tokens below the
   # strict Chinchilla point and document the tradeoff, (c) move to rented
   # cloud compute. Do not silently change this config without updating

@@ -28,15 +28,17 @@ fn fixture_header_and_metadata_match_expected_spec() {
     let file = BnaiFile::parse(data).expect("fixture must parse as a valid .bnai file");
 
     assert_eq!(file.metadata.vocab_size, 32000);
-    assert_eq!(file.metadata.d_model, 576);
+    assert_eq!(file.metadata.d_model, 768);
     assert_eq!(file.metadata.n_layers, 14);
-    assert_eq!(file.metadata.n_heads, 9);
+    assert_eq!(file.metadata.n_heads, 12);
     assert_eq!(file.metadata.head_dim, 64);
-    assert_eq!(file.metadata.ffn_hidden, 1536);
+    assert_eq!(file.metadata.ffn_hidden, 2048);
     assert_eq!(file.metadata.context_len, 2048);
     assert_eq!(file.metadata.pack_scheme, "base3_5_per_byte");
 
-    let expected_params = 74_187_072u64;
+    // ~125M-class architecture (d_model=768/n_heads=12 matches GPT-2-small's
+    // width; see docs/model_card.md for why this size was chosen).
+    let expected_params = 123_688_704u64;
     let diff = (file.metadata.param_count as i64 - expected_params as i64).unsigned_abs();
     assert!(
         diff < expected_params / 100, // within 1%
@@ -47,12 +49,12 @@ fn fixture_header_and_metadata_match_expected_spec() {
 
     assert_eq!(file.layers.len(), 14);
     for layer in &file.layers {
-        assert_eq!(layer.q.out_features, 576);
-        assert_eq!(layer.q.in_features, 576);
-        assert_eq!(layer.gate.out_features, 1536);
-        assert_eq!(layer.gate.in_features, 576);
-        assert_eq!(layer.down.out_features, 576);
-        assert_eq!(layer.down.in_features, 1536);
+        assert_eq!(layer.q.out_features, 768);
+        assert_eq!(layer.q.in_features, 768);
+        assert_eq!(layer.gate.out_features, 2048);
+        assert_eq!(layer.gate.in_features, 768);
+        assert_eq!(layer.down.out_features, 768);
+        assert_eq!(layer.down.in_features, 2048);
     }
 }
 

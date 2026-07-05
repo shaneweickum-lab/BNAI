@@ -17,17 +17,27 @@ invented retroactively.
 
 Purpose: confirm BitLinear's quantization/STE ops run correctly (and at
 reasonable speed) on MPS before starting a multi-day run, and measure real
-tokens/sec on this machine to pick the right wall-clock scenario from the
-spec's ladder (optimistic ~4,800-5,000 tok/s / likely ~3,600-4,200 / conservative
-~2,800-3,100, against a measured fp16 baseline of 5,600 tok/s).
+tokens/sec on this machine to pick the right wall-clock scenario.
+
+**Note on the fp16 baseline number:** the spec's original ladder
+(optimistic ~4,800-5,000 tok/s / likely ~3,600-4,200 / conservative
+~2,800-3,100 tok/s, against a measured fp16 baseline of 5,600 tok/s) was
+measured at the *original* ~74.2M architecture. This repo's architecture is
+now ~123.7M params ("125M-class", resized from the original design point
+-- see `docs/model_card.md`), so per-token compute is higher and that
+5,600 tok/s figure does not directly apply. Re-measure the fp16 baseline at
+the current architecture rather than reusing the old number; a rough
+scaling estimate (throughput ∝ 1/params) puts it around
+`5,600 × (74.2/123.7) ≈ 3,360 tok/s`, but treat that as a placeholder guess
+to replace with a real measurement, not a plan input.
 
 | Check | Result |
 |---|---|
 | All BitLinear ops (quantize weight, quantize activation, STE backward) run on MPS without silent CPU fallback | TBD |
-| Measured ternary tok/s (few hundred steps, full architecture) | TBD |
+| Measured ternary tok/s (few hundred steps, full ~123.7M architecture) | TBD |
 | Measured fp16-baseline tok/s (same architecture, `ternary_weights: false`) | TBD |
 | Which wall-clock scenario applies | TBD |
-| Recomputed full-run estimate (1.5B tokens / measured tok/s) | TBD |
+| Recomputed full-run estimate (2.47B tokens / measured tok/s) | TBD |
 | Fallback taken, if any (trim context/width, reduce token budget, rent cloud compute) | TBD |
 
 Command used:

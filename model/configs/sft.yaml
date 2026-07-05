@@ -7,18 +7,18 @@ model:
   # Must match base_ternary.yaml exactly -- SFT continues training the same
   # architecture from the pretrained checkpoint.
   vocab_size: 32000
-  d_model: 576
+  d_model: 768
   n_layers: 14
-  n_heads: 9
-  ffn_hidden: 1536
+  n_heads: 12
+  ffn_hidden: 2048
   context_len: 2048
   act_bits: 8
   ternary_weights: true
 
 training:
-  # Deliberately small relative to the 1.5B-token base pretrain -- oversized
+  # Deliberately small relative to the 2.47B-token base pretrain -- oversized
   # SFT risks overfitting to surface chat patterns (spec Section 4).
-  target_tokens: 40_000_000
+  target_tokens: 65_000_000
   effective_batch_tokens: 131_072
   micro_batch_size: 8
   peak_lr: 5.0e-5

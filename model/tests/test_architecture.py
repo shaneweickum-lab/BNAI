@@ -13,10 +13,10 @@ from architecture import BNAIConfig, BNAILanguageModel, BitLinear, _absmean_quan
 def default_config() -> BNAIConfig:
     return BNAIConfig(
         vocab_size=32000,
-        d_model=576,
+        d_model=768,
         n_layers=14,
-        n_heads=9,
-        ffn_hidden=1536,
+        n_heads=12,
+        ffn_hidden=2048,
         context_len=2048,
     )
 
@@ -24,8 +24,9 @@ def default_config() -> BNAIConfig:
 def test_param_count_matches_budget():
     model = BNAILanguageModel(default_config())
     total = model.num_parameters()
-    # Spec target: ~74.2M, within +/-5%.
-    target = 74_200_000
+    # Target: ~125M ("125M-class", GPT-2-small width), within +/-5%.
+    # Precise value for this exact config is 123,688,704.
+    target = 125_000_000
     assert abs(total - target) / target < 0.05, f"param count {total} outside +/-5% of {target}"
 
 

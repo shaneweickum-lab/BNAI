@@ -26,11 +26,11 @@ to float, and honest measurement of what that buys you.
 
 | Hyperparameter | Value |
 |---|---|
-| d_model | 576 |
+| d_model | 768 |
 | n_layers | 14 |
-| n_heads | 9 (head_dim 64) |
+| n_heads | 12 (head_dim 64) |
 | attention | causal multi-head self-attention, RoPE, no bias |
-| feed-forward | SwiGLU, hidden dim 1536 |
+| feed-forward | SwiGLU, hidden dim 2048 |
 | normalization | RMSNorm, pre-norm |
 | vocab size | 32,000 (from-scratch byte-level BPE, see below) |
 | context length | 2048 tokens |
@@ -38,8 +38,16 @@ to float, and honest measurement of what that buys you.
 | weight precision | ternary {-1,0,+1} via BitLinear; embedding/LM-head excluded |
 | activation precision | int8 per-token (absmax) during training; plain float at inference (see runtime/) |
 
-**Measured parameter count: 74,187,072** (target was ~74.2M — see
-`model/tests/test_architecture.py::test_param_count_matches_budget`).
+**Measured parameter count: 123,688,704** ("125M-class" — `d_model`=768 /
+`n_heads`=12 deliberately matches GPT-2-small's width; `head_dim`=64 and
+`n_layers`=14 carried over from the original ~74.2M design point). See
+`model/tests/test_architecture.py::test_param_count_matches_budget` and
+`docs/training_log.md`'s note on why this size and not bigger: Chinchilla
+token budget (`20 × params`) combined with per-token compute that's also
+roughly linear in `params` means total training compute scales as
+`params²` — this size already costs ~2.8x the compute of the original 75M
+design point, and going much bigger trades away laptop-training
+feasibility for a bigger number that the engineering story doesn't need.
 
 ## Tokenizer
 
@@ -67,18 +75,22 @@ lookup-table read — this is the "ROM" the project is named for.
 
 **Measured, on the placeholder (random-weight) export at full architecture:**
 
-- Packed size: **48.05 MB**
-- fp16-equivalent size (if nothing were quantized): ~148.4 MB
-- **Measured compression ratio: ~3.1x** — meaningfully below a naive
+- Packed size: **69.02 MB**
+- fp16-equivalent size (if nothing were quantized): ~247.4 MB
+- **Measured compression ratio: ~3.58x** — meaningfully below a naive
   "1.58 bits vs 16 bits ≈ 10x" intuition, or even the 5-8x that intuition
-  might get discounted to. The reason: the tied embedding table is ~18.4M of
-  the 74.2M total params (~25%) and stays fp16, so only the remaining ~75%
-  (the attention/FFN projections) compress ~10x; overall ratio works out to
-  `1 / (0.248 + 0.752 * (1.6/16)) ≈ 3.1x`. This is a real architectural
-  tradeoff (spec Section 2 explicitly keeps the embedding at higher
-  precision for quality), not a packing-format bug — stated here per the
-  spec's own instruction to measure and report the real number rather than
-  assume the optimistic one.
+  might get discounted to, though slightly better than the ~3.1x measured at
+  the original 74.2M design point. The reason: the tied embedding table is
+  ~24.6M of the 123.7M total params (~19.9%) and stays fp16, so only the
+  remaining ~80% (the attention/FFN projections) compress ~10x; overall
+  ratio works out to `1 / (0.199 + 0.801 * (1.6/16)) ≈ 3.58x`. Widening
+  `d_model` (embedding grows linearly with it) while attention/FFN params
+  grow quadratically with it is *why* the ratio improves at this larger
+  size — a real, measured, architecture-dependent effect, not a
+  coincidence. This is a real tradeoff (spec Section 2 explicitly keeps the
+  embedding at higher precision for quality), not a packing-format bug —
+  stated here per the spec's own instruction to measure and report the real
+  number rather than assume the optimistic one.
 
 This also matters for the web demo's cold-load story (Section 7): 48MB is a
 real download, not a trivial one, especially on mobile networks — the demo
@@ -89,10 +101,10 @@ UI shows real download progress rather than downplaying this.
 See `model/configs/base_ternary.yaml` / `base_fp16_baseline.yaml` /
 `sft.yaml` for exact hyperparameters. Summary:
 
-- **Stage A (base pretrain):** ~1.5B tokens (20 tokens/param), FineWeb-Edu,
+- **Stage A (base pretrain):** ~2.47B tokens (20 tokens/param), FineWeb-Edu,
   AdamW (β 0.9/0.95, wd 0.1), peak LR 3e-4 with linear warmup (2%) + cosine
   decay to 10%, gradient clipping at 1.0, bf16 mixed precision.
-- **Stage B (SFT):** UltraChat-200k subset + OASST2, ~40M tokens (not
+- **Stage B (SFT):** UltraChat-200k subset + OASST2, ~65M tokens (not
   counted in the Chinchilla budget), lower LR (5e-5), loss masked to
   assistant turns only, monitored for "alignment tax" (regression on Stage
   A's held-out perplexity).

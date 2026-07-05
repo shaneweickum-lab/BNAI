@@ -171,15 +171,11 @@ def load_bnai_metadata(path: str) -> dict:
 
 
 def _build_placeholder_model(vocab_size_override: int | None = None) -> BNAILanguageModel:
-    cfg = BNAIConfig(
-        vocab_size=vocab_size_override or 32000,
-        d_model=576,
-        n_layers=14,
-        n_heads=9,
-        ffn_hidden=1536,
-        context_len=2048,
-        ternary_weights=True,
-    )
+    # Uses BNAIConfig's own defaults for every dim except vocab_size, so this
+    # never drifts out of sync with the real spec'd architecture.
+    cfg = BNAIConfig(ternary_weights=True)
+    if vocab_size_override is not None:
+        cfg.vocab_size = vocab_size_override
     return BNAILanguageModel(cfg)
 
 

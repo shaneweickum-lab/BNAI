@@ -16,11 +16,16 @@ import torch.nn.functional as F
 
 @dataclass
 class BNAIConfig:
+    # ~123.7M params (marketed as "125M"): d_model=768/n_heads=12 matches
+    # GPT-2-small's width, head_dim=64 and n_layers=14 carried over from the
+    # original ~74.2M design. See docs/model_card.md for the compute-scaling
+    # reasoning behind this size (Chinchilla token budget x per-token compute
+    # scale as params^2, not params, so this isn't just "make it bigger").
     vocab_size: int = 32000
-    d_model: int = 576
+    d_model: int = 768
     n_layers: int = 14
-    n_heads: int = 9
-    ffn_hidden: int = 1536
+    n_heads: int = 12
+    ffn_hidden: int = 2048
     context_len: int = 2048
     rope_theta: float = 10000.0
     rms_eps: float = 1e-5

@@ -18,14 +18,16 @@ measured here — don't conflate them:
 
 | | Value |
 |---|---|
-| Total parameters | 74,187,072 |
-| Packed `.bnai` size (ternary + fp16 embedding) | 48.05 MB |
-| fp16-equivalent size (nothing quantized) | ~148.4 MB |
-| **Measured compression ratio** | **~3.1x** |
+| Total parameters | 123,688,704 ("125M-class") |
+| Packed `.bnai` size (ternary + fp16 embedding) | 69.02 MB |
+| fp16-equivalent size (nothing quantized) | ~247.4 MB |
+| **Measured compression ratio** | **~3.58x** |
 
-See `docs/model_card.md` for why this is ~3.1x rather than the 5-8x a naive
+See `docs/model_card.md` for why this is ~3.58x rather than the 5-8x a naive
 "1.58 bits vs 16 bits" estimate might suggest (short version: the tied fp16
-embedding table is ~25% of total params and doesn't compress).
+embedding table is ~19.9% of total params and doesn't compress -- a smaller
+share than at the original 74.2M design point, which is why the ratio
+improved rather than worsened when the model got bigger).
 
 ## 1. Training-side reference benchmark (TBD)
 
@@ -45,7 +47,7 @@ each browser in the locked matrix (spec Section 7); mobile Safari is the
 binding memory constraint, test on a real iOS device, not just desktop
 Safari or a simulator.
 
-| Browser / device | WASM SIMD supported? | Cold load time (48MB model + runtime) | Time to first token | Steady-state tokens/sec | Peak memory |
+| Browser / device | WASM SIMD supported? | Cold load time (69MB model + runtime) | Time to first token | Steady-state tokens/sec | Peak memory |
 |---|---|---|---|---|---|
 | Desktop Chrome | TBD | TBD | TBD | TBD | TBD |
 | Desktop Edge | TBD | TBD | TBD | TBD | TBD |
@@ -62,8 +64,11 @@ Safari or a simulator.
 
 ## Open measurement questions (spec Section 11 — confirm before/at deploy)
 
-- Real ternary tok/s on the M5 during Phase 3's smoke test, vs the fp16
-  baseline of 5,600 tok/s measured on the same machine.
+- Real ternary tok/s on the M5 during Phase 3's smoke test, vs a freshly
+  re-measured fp16 baseline at the current ~123.7M architecture (the
+  spec's original 5,600 tok/s figure was measured at the original ~74.2M
+  design point and doesn't directly apply after the resize -- see
+  `docs/training_log.md`).
 - Mobile Safari's actual KV-cache memory ceiling at context_len=2048 — may
   push the *served* context window below the *trained* 2048, tested for
   real on-device rather than assumed.
