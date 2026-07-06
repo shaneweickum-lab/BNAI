@@ -1,0 +1,40 @@
+# Tiny SFT config matching configs/smoke_test.yaml's architecture, for
+# exercising sft.py's mechanics quickly (checkpoint loading, chat-template
+# masking, alignment-tax tracking) -- not a stand-in for the real Stage B run.
+
+model:
+  vocab_size: 512
+  d_model: 64
+  n_layers: 2
+  n_heads: 4
+  ffn_hidden: 128
+  context_len: 64
+  act_bits: 8
+  ternary_weights: true
+
+training:
+  target_tokens: 100_000
+  effective_batch_tokens: 1024
+  micro_batch_size: 4
+  peak_lr: 5.0e-5
+  warmup_fraction: 0.1
+  min_lr_fraction: 0.1
+  adam_beta1: 0.9
+  adam_beta2: 0.95
+  weight_decay: 0.0
+  grad_clip_norm: 1.0
+  amp_dtype: bfloat16
+  log_interval_steps: 5
+  checkpoint_interval_steps: 20
+  export_interval_steps: 20
+  max_base_ppl_regression: 0.10
+
+data:
+  sft_dataset: "unused-for-local-corpus-runs"
+  eval_dataset: "unused"
+  turns_field: "messages"
+  val_fraction: 0.05
+  base_val_dataset: "unused-for-local-corpus-runs"
+  base_val_fraction: 0.05
+
+output_dir: "checkpoints/sft_smoke_test"

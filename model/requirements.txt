@@ -1,0 +1,12 @@
+# Core (needed for architecture, tokenizer, data pipeline, train/sft/export/eval)
+torch>=2.2
+numpy>=1.26
+regex>=2023.0
+PyYAML>=6.0
+
+# Needed only when streaming from Hugging Face (--hf-dataset / iter_hf_streaming_*
+# in model/data/pipeline.py) rather than local .jsonl files. Not needed for tests.
+datasets>=2.18
+
+# Tests
+pytest>=8.0

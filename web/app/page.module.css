@@ -1,0 +1,115 @@
+.hero {
+  padding: 64px 24px 40px;
+  max-width: var(--max-width);
+  margin: 0 auto;
+}
+
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  color: var(--accent);
+  margin-bottom: 12px;
+}
+
+.title {
+  font-size: 2.6rem;
+  margin-bottom: 16px;
+}
+
+.subtitle {
+  font-size: 1.15rem;
+  color: var(--fg-muted);
+  max-width: 640px;
+  margin-bottom: 28px;
+}
+
+.ctaRow {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+
+.section {
+  padding: 40px 24px;
+  max-width: var(--max-width);
+  margin: 0 auto;
+  border-top: 1px solid var(--border);
+}
+
+.section h2 {
+  font-size: 1.5rem;
+  margin-bottom: 16px;
+}
+
+.section p {
+  margin-bottom: 14px;
+  color: var(--fg-muted);
+}
+
+.specGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 16px;
+  margin-top: 20px;
+}
+
+.specCard {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  background: var(--bg-elevated);
+}
+
+.specValue {
+  font-family: var(--font-mono);
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--fg);
+}
+
+.specLabel {
+  font-size: 0.82rem;
+  color: var(--fg-muted);
+  margin-top: 4px;
+}
+
+.compareBars {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.compareRow {
+  display: grid;
+  grid-template-columns: 140px 1fr 90px;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.9rem;
+}
+
+.barTrack {
+  background: var(--code-bg);
+  border-radius: 6px;
+  overflow: hidden;
+  height: 14px;
+}
+
+.barFill {
+  height: 100%;
+  border-radius: 6px;
+  background: var(--accent);
+}
+
+.ratioNote {
+  margin-top: 14px;
+  font-size: 0.9rem;
+}
+
+.paramSplit {
+  margin-top: 16px;
+  font-size: 0.9rem;
+  color: var(--fg-muted);
+}
