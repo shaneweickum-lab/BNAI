@@ -1,0 +1,45 @@
+# BNAI V1.0 ("Benny") -- Parameter ladder Stage 1 (~25M params), ternary.
+# Purpose: validate the pipeline end-to-end (data -> train -> export -> WASM
+# kernel -> AIML/GPT routing) on the cheapest real config before scaling up.
+# See docs/model_card.md for the full 25M->50M->75M->125M ladder rationale:
+# 125M is the ceiling for this project phase, reached via these validation
+# checkpoints, not four separately-shipped models.
+
+model:
+  # 25,083,264 params (+0.33% of the 25M target). vocab kept small (10K, at
+  # the low end of the spec's 8K-16K guidance) since an oversized vocabulary
+  # eats disproportionate budget at this scale -- head_dim stays 64 to match
+  # every other stage.
+  vocab_size: 10000
+  d_model: 384
+  n_layers: 12
+  n_heads: 6
+  ffn_hidden: 1024
+  context_len: 2048
+  act_bits: 8
+  ternary_weights: true
+
+training:
+  # 25,083,264 params x 20 tokens/param ~= 501.7M tokens.
+  target_tokens: 501_700_000
+  effective_batch_tokens: 524_288
+  micro_batch_size: 8
+  peak_lr: 3.0e-4
+  warmup_fraction: 0.02
+  min_lr_fraction: 0.10
+  adam_beta1: 0.9
+  adam_beta2: 0.95
+  weight_decay: 0.1
+  grad_clip_norm: 1.0
+  amp_dtype: bfloat16
+  log_interval_steps: 10
+  checkpoint_interval_steps: 250
+  export_interval_steps: 1000
+
+data:
+  train_dataset: "HuggingFaceFW/fineweb-edu"
+  train_split: "train"
+  text_field: "text"
+  val_fraction: 0.008
+
+output_dir: "checkpoints/stage1_25m_ternary"

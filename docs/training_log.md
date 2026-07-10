@@ -4,6 +4,12 @@ This is a template to fill in as real training runs happen. It exists now
 (before any real run) so the format is decided in advance rather than
 invented retroactively.
 
+Training happens across the 4-stage parameter ladder (see
+`docs/model_card.md`), not as a single run — duplicate the Phase 3/4/5
+sections below per stage as each one is actually trained. Stage 4
+(~123.7M) is the ceiling/default; Stages 1-3 are earlier validation
+checkpoints on the way there.
+
 ## Environment
 
 | | |

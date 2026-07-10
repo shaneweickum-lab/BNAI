@@ -9,18 +9,63 @@ repo (`web/public/model/benny-placeholder.bnai`).
 
 ## What this is
 
-A 75M-parameter decoder-only transformer with ternary ({-1, 0, +1}) weights
-in every attention and feed-forward projection ("BitLinear", following the
-BitNet b1.58 approach), trained compute-optimally per the Chinchilla scaling
-law (~20 tokens/parameter) and served entirely client-side via a from-scratch
-Rust→WASM inference engine — no inference server, no API calls, generation
-runs on the visitor's own machine.
+A 125M-class (123,688,704 measured) decoder-only transformer with ternary
+({-1, 0, +1}) weights in every attention and feed-forward projection
+("BitLinear", following the BitNet b1.58 approach), trained
+compute-optimally per the Chinchilla scaling law (~20 tokens/parameter) and
+served entirely client-side via a from-scratch Rust→WASM inference engine
+— no inference server, no API calls, generation runs on the visitor's own
+machine.
 
-The engineering point of this project isn't raw model capability (a 75M
+The engineering point of this project isn't raw model capability (a 125M
 model cannot compete with frontier assistants on knowledge or reasoning) —
 it's the systems work: quantization-aware training implemented from scratch,
 a dependency-light WASM runtime that never dequantizes ternary weights back
 to float, and honest measurement of what that buys you.
+
+## Hybrid deterministic architecture (AIML + neural fallback)
+
+Benny is two layers, not one:
+
+1. **Deterministic layer** (`aiml/`): AIML-style pattern matching, tried
+   first on every turn. Same input + same dialogue state always produces
+   the same match — cheap, fast, no neural inference required.
+2. **Neural fallback** (this model): invoked only when the deterministic
+   layer finds no unambiguous match — the long tail of open-ended input
+   the pattern set doesn't cover.
+
+This is a deliberate cost/latency/predictability engineering decision —
+"deterministic where determinism is sufficient, neural only where
+necessary" — not a fallback to older chatbot technology because the neural
+approach is inadequate. See `aiml/README.md` for the matching rules and
+`web/lib/dialogue/dialogueManager.ts` for where the routing decision is
+actually made. An ambiguous AIML match (a pattern that would have produced
+a classic `<random>` block of multiple divergent valid replies) is treated
+as a fallback case too, not resolved by picking randomly — that's exactly
+the case the neural model is better suited to than static template
+selection.
+
+## Parameter ladder (25M → 50M → 75M → 125M)
+
+125M is the ceiling/default for this project phase, reached via a 4-stage
+validation ladder rather than trained directly — Stage 1 validates the
+whole pipeline (data → train → export → WASM kernel → AIML/GPT routing) at
+the cheapest real config before scaling up; Stage 3 is literally the
+original ~74.2M design point from an earlier pass of this project, kept as
+a ladder checkpoint rather than a separate shipped model.
+
+| Stage | vocab | d_model | n_heads | n_layers | ffn_hidden | params |
+|---|---|---|---|---|---|---|
+| 1 — validate pipeline | 10,000 | 384 | 6 | 12 | 1024 | 25,083,264 |
+| 2 — first scale-up | 16,000 | 640 | 10 | 8 | 1728 | 49,900,160 |
+| 3 — original design point | 32,000 | 576 | 9 | 14 | 1536 | 74,187,072 |
+| 4 — ceiling (default) | 32,000 | 768 | 12 | 14 | 2048 | 123,688,704 |
+
+Each stage's total training compute (Chinchilla-optimal tokens × per-token
+cost) scales roughly as params², not params — going from Stage 1 to Stage 4
+costs ~24x the compute of Stage 1, not ~5x, which is why the ladder stops
+at 125M rather than continuing upward: laptop-training feasibility is the
+binding constraint, not memory. Configs: `model/configs/stage{1,2,3,4}_*.yaml`.
 
 ## Architecture
 
@@ -54,7 +99,9 @@ feasibility for a bigger number that the engineering story doesn't need.
 A fresh byte-level BPE tokenizer (`model/tokenizer/bpe.py`), trained on a
 sample of the actual pretraining corpus rather than reusing an existing
 (likely oversized) vocabulary — see spec Section 4's reasoning: an inherited
-vocab wastes embedding-table capacity on a 75M model. Includes chat special
+vocab wastes embedding-table capacity, which matters even more at the lower
+end of the parameter ladder (Stage 1's 25M-param config uses a 10K vocab
+for exactly this reason). Includes chat special
 tokens (`<|system|>`, `<|user|>`, `<|assistant|>`, `<|end|>`) from the start.
 GPT-2-style byte-to-unicode mapping guarantees full UTF-8 coverage with no
 `<unk>` fallback for raw bytes.
@@ -137,6 +184,16 @@ Run `model/eval.py` against real checkpoints to fill this in (see README).
   training run completes, are both placeholders (synthetic corpus /
   untrained random weights respectively) — used only to prove the
   export → WASM runtime → web demo pipeline end-to-end.
+- The AIML category set (`aiml/categories/`) is a small (44-category)
+  hand-curated seed set, not bootstrapped from real UltraChat/OASST2 data
+  — see `aiml/README.md`. Real conversational coverage requires running
+  `aiml/tools/bootstrap.py` against the actual datasets plus a real human
+  review pass.
+- Context folding for the neural fallback's conversation history (gist
+  tokens, a "Vault", a two-phase training curriculum) is **not
+  implemented** — the referenced design doc was never shared with this
+  build pass. `web/lib/dialogue/dialogueManager.ts` truncates oldest turns
+  on overflow instead.
 
 ## Dataset licensing (confirm at real-training time)
 

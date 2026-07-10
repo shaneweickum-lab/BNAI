@@ -1,0 +1,44 @@
+# BNAI V1.0 ("Benny") -- Parameter ladder Stage 4 (~125M params), ternary.
+# This IS base_ternary.yaml's config, duplicated under the ladder naming so
+# the full 25M->50M->75M->125M progression is discoverable by filename
+# pattern. 125M is the ceiling/default for this project phase -- see
+# docs/model_card.md for the ladder rationale. If you change this file,
+# update base_ternary.yaml (and vice versa) so they don't drift apart.
+
+model:
+  # 123,688,704 params (exact match). d_model=768/n_heads=12 matches
+  # GPT-2-small's width, head_dim=64/n_layers=14 carried over from the
+  # original ~74.2M (Stage 3) design.
+  vocab_size: 32000
+  d_model: 768
+  n_layers: 14
+  n_heads: 12
+  ffn_hidden: 2048
+  context_len: 2048
+  act_bits: 8
+  ternary_weights: true
+
+training:
+  # 123,688,704 params x 20 tokens/param ~= 2.47B tokens.
+  target_tokens: 2_470_000_000
+  effective_batch_tokens: 524_288
+  micro_batch_size: 8
+  peak_lr: 3.0e-4
+  warmup_fraction: 0.02
+  min_lr_fraction: 0.10
+  adam_beta1: 0.9
+  adam_beta2: 0.95
+  weight_decay: 0.1
+  grad_clip_norm: 1.0
+  amp_dtype: bfloat16
+  log_interval_steps: 10
+  checkpoint_interval_steps: 250
+  export_interval_steps: 1000
+
+data:
+  train_dataset: "HuggingFaceFW/fineweb-edu"
+  train_split: "train"
+  text_field: "text"
+  val_fraction: 0.008
+
+output_dir: "checkpoints/stage4_125m_ternary"

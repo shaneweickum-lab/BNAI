@@ -1,19 +1,13 @@
 # BNAI V1.0 ("Benny") -- Stage B conversational SFT (spec Section 4).
 # Not counted in the Chinchilla pretraining budget.
-
-base_checkpoint: "checkpoints/base_ternary/latest.pt"
-
-model:
-  # Must match base_ternary.yaml exactly -- SFT continues training the same
-  # architecture from the pretrained checkpoint.
-  vocab_size: 32000
-  d_model: 768
-  n_layers: 14
-  n_heads: 12
-  ffn_hidden: 2048
-  context_len: 2048
-  act_bits: 8
-  ternary_weights: true
+#
+# No `model:` section here on purpose: sft.py derives the architecture
+# directly from whichever checkpoint you pass to --base-checkpoint (or from
+# the resumed SFT checkpoint's own saved config), so this one file works
+# across the whole parameter ladder (stage1_25m through stage4_125m) rather
+# than needing a duplicate per-stage config kept in sync by hand. Pass the
+# base checkpoint path via `--base-checkpoint`, e.g.:
+#   python sft.py --config configs/sft.yaml --base-checkpoint checkpoints/stage4_125m_ternary/latest.pt ...
 
 training:
   # Deliberately small relative to the 2.47B-token base pretrain -- oversized

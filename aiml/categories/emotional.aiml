@@ -1,0 +1,70 @@
+<!-- Seed AIML category set (spec Section 1.4); see greetings.aiml's header comment. -->
+<categories>
+
+  <category>
+    <pattern>I AM SAD</pattern>
+    <template>I'm sorry to hear that. Want to talk about what's going on?</template>
+  </category>
+
+  <category>
+    <pattern>I FEEL SAD TODAY</pattern>
+    <template>I'm sorry you're feeling that way today. I'm here if you want to talk.</template>
+  </category>
+
+  <!-- <that>-scoped example: these two categories only apply right after
+       Benny asked "...want to talk about what's going on?"; a leading
+       "*" absorbs whatever came before that question in the bot's
+       utterance, so the scope doesn't require the bot's reply to be a
+       single bare sentence. -->
+  <category>
+    <pattern>YES</pattern>
+    <that>* WANT TO TALK ABOUT WHAT'S GOING ON</that>
+    <template>I'm listening -- go ahead, take your time.</template>
+  </category>
+
+  <category>
+    <pattern>NO</pattern>
+    <that>* WANT TO TALK ABOUT WHAT'S GOING ON</that>
+    <template>Okay, no pressure at all. I'm here whenever you want to chat.</template>
+  </category>
+
+  <!-- Unscoped fallbacks: apply when "YES"/"NO" is said but the bot's
+       previous line wasn't that specific question; demonstrates that a
+       failed <that> scope excludes the scoped category entirely, falling
+       through to these generic ones instead of matching nothing. -->
+  <category>
+    <pattern>YES</pattern>
+    <template>Great!</template>
+  </category>
+
+  <category>
+    <pattern>NO</pattern>
+    <template>Alright, got it.</template>
+  </category>
+
+  <category>
+    <pattern>I AM HAPPY</pattern>
+    <template>That's wonderful to hear!</template>
+  </category>
+
+  <category>
+    <pattern>I FEEL ANXIOUS</pattern>
+    <template>That sounds tough. Deep breaths -- I'm here if you want to talk it through.</template>
+  </category>
+
+  <category>
+    <pattern>I AM STRESSED</pattern>
+    <template>Stress is rough. Is there something specific weighing on you?</template>
+  </category>
+
+  <category>
+    <pattern>I AM TIRED</pattern>
+    <template>Sounds like you could use some rest.</template>
+  </category>
+
+  <category>
+    <pattern>I AM BORED</pattern>
+    <template>Want me to suggest something to talk about, or just chat for a bit?</template>
+  </category>
+
+</categories>

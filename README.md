@@ -24,6 +24,7 @@ weights.** See "Status" below for exactly what's real vs. placeholder.
 
 ```
 model/          Python: architecture, tokenizer, data pipeline, train/sft/export/eval
+aiml/           Deterministic pattern-matching layer: category XML, bootstrap+compile tooling
 runtime/        Rust, compiled to WASM: ternary inference engine + BPE tokenizer
 web/            Next.js app (landing / demo / about), deployed on Vercel
 docs/           model_card.md, training_log.md, benchmarks.md
@@ -32,17 +33,17 @@ docs/           model_card.md, training_log.md, benchmarks.md
 ## Quick start
 
 ```bash
-# Python side (training/export/eval)
+# Python side (training/export/eval, plus the AIML compiler/bootstrap tooling)
 pip install -r model/requirements.txt
-python -m pytest model/tests/ -q          # 34 tests, no GPU/network needed
+python -m pytest model/tests/ aiml/tests/ -q     # ~69 tests, no GPU/network needed
 
 # Rust side (WASM runtime)
 cd runtime && cargo test                  # native tests
 cargo build --target wasm32-unknown-unknown --release   # confirm it compiles to wasm
 # wasm-pack build --target web --out-dir pkg   # produces the browser-loadable .wasm + JS glue
 
-# Web side (demo)
-cd web && npm install && npm run build && npm run dev
+# Web side (demo, incl. the AIML matcher + dialogue manager)
+cd web && npm install && npm test && npm run build && npm run dev
 ```
 
 ## Architecture summary
@@ -64,6 +65,44 @@ see `docs/model_card.md` for why this size and not bigger: Chinchilla token
 budget and per-token compute both scale with params, so total training
 compute scales as roughly `params²` — this size already costs ~2.8x the
 compute of the original ~74.2M design point.
+
+## Hybrid deterministic architecture
+
+Benny is two layers, not one:
+
+1. **Deterministic layer** (`aiml/`) — an AIML-style pattern matcher, tried
+   first on every turn. Same input + same dialogue state always produces
+   the same match: cheap, fast, no neural inference required.
+2. **Neural fallback** (`model/`, `runtime/`) — the ternary GPT transformer
+   above, invoked only when the deterministic layer finds no unambiguous
+   match: the long tail of open-ended input the pattern set doesn't cover.
+
+This is a deliberate cost/latency/predictability engineering decision —
+deterministic where determinism is sufficient, neural only where necessary
+— not a fallback to older chatbot technology because the neural approach
+is inadequate. A pattern that would produce multiple divergent valid
+replies (what AIML calls a `<random>` block) is treated as ambiguous and
+routed to the neural fallback too, rather than picked from randomly — the
+matcher never guesses, it only returns responses that are actually
+reproducible. See `aiml/README.md` for the matching rules and
+`web/lib/dialogue/dialogueManager.ts` for the routing logic itself.
+
+## Parameter ladder (25M → 50M → 75M → 125M)
+
+125M is the ceiling/default for this project phase — not trained directly,
+but reached via a 4-stage validation ladder, since Chinchilla-optimal
+training compute scales roughly as params² (token budget scales with
+params, and per-token cost does too), not linearly:
+
+| Stage | params | purpose |
+|---|---|---|
+| 1 | 25,083,264 | validate the whole pipeline cheaply before scaling up |
+| 2 | 49,900,160 | first quality scale-up |
+| 3 | 74,187,072 | the original design point from an earlier pass of this project |
+| 4 | 123,688,704 | ceiling for this phase (current default) |
+
+Configs: `model/configs/stage{1,2,3,4}_{25m,50m,75m,125m}_{ternary,fp16_baseline}.yaml`.
+Full rationale and exact architecture per stage: `docs/model_card.md`.
 
 ## Retrain / re-export / redeploy, end to end
 
@@ -220,6 +259,9 @@ assets (the Next.js app, the WASM binary, the packed model file).
 | Packed file size (69.02MB) / compression ratio (~3.58x) | Real measurement (packing is weight-value-independent) |
 | Rust WASM runtime | See `runtime/` — built against the placeholder artifact |
 | Web demo | See `web/` — built against the placeholder artifact and a documented worker interface |
+| AIML matcher engine + dialogue manager | Real, tested (`aiml/tests/`, `web/lib/aiml/*.test.ts`) |
+| AIML category *content* shipped in this repo | Placeholder — 44 hand-curated seed categories, not bootstrapped from real UltraChat/OASST2 (see `aiml/README.md`) |
+| Context folding (gist tokens / Vault / two-phase curriculum) | **Not implemented** — referenced spec docs were never shared; dialogue manager does simple oldest-turn truncation instead |
 | Any loss/perplexity/eval/benchmark number | **TBD** — needs the real training run |
 
 ## Open questions to confirm before/at real-training time (spec Section 11)
@@ -231,3 +273,13 @@ assets (the Next.js app, the WASM binary, the packed model file).
 - Mobile Safari's real KV-cache memory ceiling at `context_len=2048` — may
   push the *served* context window below the *trained* one; test on a real
   iOS device, not a simulator.
+- **Context-folding reconciliation (not attempted, flagged only):** a later
+  spec referenced two documents this repo has never had —
+  `benny-folding-head-architecture-spec.txt` (gist tokens, a "Vault", a
+  two-phase training curriculum for the neural fallback's conversation
+  history) and `benny-positioning-narrative.txt` (a README/positioning
+  draft). Neither exists in this repo or has been shared. The current
+  neural fallback (`model/`, `runtime/`) and dialogue manager
+  (`web/lib/dialogue/`) do **not** implement context folding — the
+  dialogue manager truncates oldest turns on overflow, nothing fancier.
+  Reconcile once those documents are available; don't guess their content.

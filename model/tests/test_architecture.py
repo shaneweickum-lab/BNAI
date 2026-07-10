@@ -30,6 +30,27 @@ def test_param_count_matches_budget():
     assert abs(total - target) / target < 0.05, f"param count {total} outside +/-5% of {target}"
 
 
+PARAMETER_LADDER = [
+    # (stage name, vocab_size, d_model, n_heads, n_layers, ffn_hidden, target)
+    ("stage1_25m", 10000, 384, 6, 12, 1024, 25_000_000),
+    ("stage2_50m", 16000, 640, 10, 8, 1728, 50_000_000),
+    ("stage3_75m", 32000, 576, 9, 14, 1536, 75_000_000),
+    ("stage4_125m", 32000, 768, 12, 14, 2048, 125_000_000),
+]
+
+
+@pytest.mark.parametrize("name,vocab,d_model,n_heads,n_layers,ffn_hidden,target", PARAMETER_LADDER)
+def test_parameter_ladder_stages_within_tolerance(name, vocab, d_model, n_heads, n_layers, ffn_hidden, target):
+    """Locks in docs/model_card.md's 25M->50M->75M->125M ladder table --
+    each stage's exact config must land within +/-5% of its target."""
+    cfg = BNAIConfig(
+        vocab_size=vocab, d_model=d_model, n_heads=n_heads, n_layers=n_layers, ffn_hidden=ffn_hidden, context_len=2048
+    )
+    total = BNAILanguageModel(cfg).num_parameters()
+    err = abs(total - target) / target
+    assert err < 0.05, f"{name}: param count {total:,} outside +/-5% of {target:,} (err={err:.2%})"
+
+
 def test_param_count_breakdown():
     cfg = default_config()
     model = BNAILanguageModel(cfg)

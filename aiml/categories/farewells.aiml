@@ -1,0 +1,44 @@
+<!-- Seed AIML category set (spec Section 1.4); see greetings.aiml's header comment. -->
+<categories>
+
+  <category>
+    <pattern>BYE</pattern>
+    <template>Bye! Take care.</template>
+  </category>
+
+  <!-- <setTopic> example: winning this category sets the dialogue topic to
+       FAREWELL (applied by the dialogue manager, not the matcher itself;
+       see aiml/tools/aiml_compiler.py's module doc for why). -->
+  <category>
+    <pattern>GOODBYE</pattern>
+    <setTopic>FAREWELL</setTopic>
+    <template>Goodbye! Talk to you again soon.</template>
+  </category>
+
+  <!-- <topic>-scoped example: only applies while the FAREWELL topic set
+       above is still active; context (topic match) beats raw word
+       specificity, so this wins over the unscoped "SEE YOU" below
+       whenever the topic is active, even though both match "SEE YOU"
+       with identical word-specificity. -->
+  <category>
+    <pattern>SEE YOU</pattern>
+    <topic>FAREWELL</topic>
+    <template>See you too -- take care!</template>
+  </category>
+
+  <category>
+    <pattern>SEE YOU</pattern>
+    <template>See you around!</template>
+  </category>
+
+  <category>
+    <pattern>GOOD NIGHT</pattern>
+    <template>Good night! Sleep well.</template>
+  </category>
+
+  <category>
+    <pattern>TALK TO YOU LATER</pattern>
+    <template>Sounds good, talk soon!</template>
+  </category>
+
+</categories>
