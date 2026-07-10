@@ -49,6 +49,7 @@ export function useChatStore() {
   // Loaded in an effect (not during render) to avoid an SSR/client
   // hydration mismatch -- localStorage doesn't exist on the server.
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setData(loadStore());
     setHydrated(true);
   }, []);
