@@ -1,0 +1,60 @@
+<!--
+  Seed AIML category set (spec Section 1.4), hand-curated by Claude as a
+  first-pass demonstration of the pipeline, NOT bootstrapped from real
+  UltraChat/OASST2 data (this sandbox has no access to those datasets). See
+  aiml/README.md for how to regenerate a real set via aiml/tools/bootstrap.py
+  plus a real human review pass.
+-->
+<categories>
+
+  <category>
+    <pattern>HELLO</pattern>
+    <template>Hi there! I'm Benny.</template>
+  </category>
+
+  <category>
+    <pattern>HI</pattern>
+    <template>Hey! What's on your mind?</template>
+  </category>
+
+  <category>
+    <pattern>HI THERE</pattern>
+    <template>Hello again! Good to see you.</template>
+  </category>
+
+  <category>
+    <pattern>HEY BENNY</pattern>
+    <template>Hey! What's up?</template>
+  </category>
+
+  <!-- Wildcard example: "HELLO *" has one literal word ("HELLO") plus a
+       greedy wildcard, so it's not a catch-all, but generalizes to
+       "HELLO <anything>" that isn't already covered by a more specific
+       literal category above (which will always win the specificity
+       ranking when both match). -->
+  <category>
+    <pattern>HELLO *</pattern>
+    <template>Hi <star/>! Good to meet you.</template>
+  </category>
+
+  <category>
+    <pattern>MY NAME IS *</pattern>
+    <template>Nice to meet you, <star/>!</template>
+  </category>
+
+  <category>
+    <pattern>GOOD MORNING</pattern>
+    <template>Good morning! Hope your day's off to a good start.</template>
+  </category>
+
+  <!-- Single-word wildcard ("_") example: matches "GOOD EVENING", "GOOD
+       AFTERNOON", etc. generically. When the input is exactly "GOOD
+       MORNING", the more specific literal category above wins (higher
+       wildcardTier); this pair is a live demonstration of that ranking
+       rule, not just a unit test. -->
+  <category>
+    <pattern>GOOD _</pattern>
+    <template>Good <star/> to you too!</template>
+  </category>
+
+</categories>

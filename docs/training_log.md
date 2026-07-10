@@ -4,6 +4,12 @@ This is a template to fill in as real training runs happen. It exists now
 (before any real run) so the format is decided in advance rather than
 invented retroactively.
 
+Training happens across the 4-stage parameter ladder (see
+`docs/model_card.md`), not as a single run — duplicate the Phase 3/4/5
+sections below per stage as each one is actually trained. Stage 4
+(~123.7M) is the ceiling/default; Stages 1-3 are earlier validation
+checkpoints on the way there.
+
 ## Environment
 
 | | |
@@ -63,6 +69,20 @@ python model/train.py --config model/configs/base_ternary.yaml \
 Loss/perplexity/grad-norm/sparsity/tokens-per-sec curves: see
 `checkpoints/*/training_log.jsonl` (written automatically by `train.py`) —
 plot and embed here once real runs exist.
+
+## Phase 2 (context folding) — continued pretraining
+
+Full spec/rationale: `docs/context_folding.md`. Not yet run (needs a stable
+Phase 1 checkpoint above, plus real long-document training data/compute).
+
+| Gist tokens/block | Fold block size | Config | Final train ppl | Extended-context ppl (folded / truncated baseline) | Needle-in-haystack accuracy (folded / truncated baseline) |
+|---|---|---|---|---|---|
+| 4 | 100 | `configs/phase2_gist4.yaml` | TBD | TBD / TBD | TBD / TBD |
+| 8 | 100 | `configs/phase2_gist8.yaml` | TBD | TBD / TBD | TBD / TBD |
+| 16 | 100 | `configs/phase2_gist16.yaml` | TBD | TBD / TBD | TBD / TBD |
+
+Chosen ratio (fill in once the sweep has real results, with reasoning, not
+just the winning number): TBD.
 
 ## Phase 5 — SFT (Stage B)
 

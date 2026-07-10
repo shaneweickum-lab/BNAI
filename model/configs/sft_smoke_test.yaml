@@ -1,16 +1,8 @@
-# Tiny SFT config matching configs/smoke_test.yaml's architecture, for
-# exercising sft.py's mechanics quickly (checkpoint loading, chat-template
-# masking, alignment-tax tracking) -- not a stand-in for the real Stage B run.
-
-model:
-  vocab_size: 512
-  d_model: 64
-  n_layers: 2
-  n_heads: 4
-  ffn_hidden: 128
-  context_len: 64
-  act_bits: 8
-  ternary_weights: true
+# Tiny SFT config for exercising sft.py's mechanics quickly (checkpoint
+# loading, chat-template masking, alignment-tax tracking) -- not a stand-in
+# for the real Stage B run. No `model:` section: architecture is derived
+# from whatever --base-checkpoint you pass (e.g. configs/smoke_test.yaml's
+# tiny architecture).
 
 training:
   target_tokens: 100_000

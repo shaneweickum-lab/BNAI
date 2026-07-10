@@ -1,0 +1,1532 @@
+{
+  "categories": [
+    {
+      "id": 0,
+      "patternSource": "I AM SAD",
+      "pattern": [
+        {
+          "kind": "literal",
+          "word": "I"
+        },
+        {
+          "kind": "literal",
+          "word": "AM"
+        },
+        {
+          "kind": "literal",
+          "word": "SAD"
+        }
+      ],
+      "that": null,
+      "topic": null,
+      "setTopic": null,
+      "templates": [
+        [
+          {
+            "kind": "text",
+            "text": "I'm sorry to hear that. Want to talk about what's going on?"
+          }
+        ]
+      ],
+      "literalCount": 3,
+      "lowCount": 0,
+      "highCount": 0,
+      "wildcardTier": 2
+    },
+    {
+      "id": 1,
+      "patternSource": "I FEEL SAD TODAY",
+      "pattern": [
+        {
+          "kind": "literal",
+          "word": "I"
+        },
+        {
+          "kind": "literal",
+          "word": "FEEL"
+        },
+        {
+          "kind": "literal",
+          "word": "SAD"
+        },
+        {
+          "kind": "literal",
+          "word": "TODAY"
+        }
+      ],
+      "that": null,
+      "topic": null,
+      "setTopic": null,
+      "templates": [
+        [
+          {
+            "kind": "text",
+            "text": "I'm sorry you're feeling that way today. I'm here if you want to talk."
+          }
+        ]
+      ],
+      "literalCount": 4,
+      "lowCount": 0,
+      "highCount": 0,
+      "wildcardTier": 2
+    },
+    {
+      "id": 2,
+      "patternSource": "YES",
+      "pattern": [
+        {
+          "kind": "literal",
+          "word": "YES"
+        }
+      ],
+      "that": [
+        {
+          "kind": "wildcard",
+          "wildcard": "*"
+        },
+        {
+          "kind": "literal",
+          "word": "WANT"
+        },
+        {
+          "kind": "literal",
+          "word": "TO"
+        },
+        {
+          "kind": "literal",
+          "word": "TALK"
+        },
+        {
+          "kind": "literal",
+          "word": "ABOUT"
+        },
+        {
+          "kind": "literal",
+          "word": "WHAT'S"
+        },
+        {
+          "kind": "literal",
+          "word": "GOING"
+        },
+        {
+          "kind": "literal",
+          "word": "ON"
+        }
+      ],
+      "topic": null,
+      "setTopic": null,
+      "templates": [
+        [
+          {
+            "kind": "text",
+            "text": "I'm listening -- go ahead, take your time."
+          }
+        ]
+      ],
+      "literalCount": 1,
+      "lowCount": 0,
+      "highCount": 0,
+      "wildcardTier": 2
+    },
+    {
+      "id": 3,
+      "patternSource": "NO",
+      "pattern": [
+        {
+          "kind": "literal",
+          "word": "NO"
+        }
+      ],
+      "that": [
+        {
+          "kind": "wildcard",
+          "wildcard": "*"
+        },
+        {
+          "kind": "literal",
+          "word": "WANT"
+        },
+        {
+          "kind": "literal",
+          "word": "TO"
+        },
+        {
+          "kind": "literal",
+          "word": "TALK"
+        },
+        {
+          "kind": "literal",
+          "word": "ABOUT"
+        },
+        {
+          "kind": "literal",
+          "word": "WHAT'S"
+        },
+        {
+          "kind": "literal",
+          "word": "GOING"
+        },
+        {
+          "kind": "literal",
+          "word": "ON"
+        }
+      ],
+      "topic": null,
+      "setTopic": null,
+      "templates": [
+        [
+          {
+            "kind": "text",
+            "text": "Okay, no pressure at all. I'm here whenever you want to chat."
+          }
+        ]
+      ],
+      "literalCount": 1,
+      "lowCount": 0,
+      "highCount": 0,
+      "wildcardTier": 2
+    },
+    {
+      "id": 4,
+      "patternSource": "YES",
+      "pattern": [
+        {
+          "kind": "literal",
+          "word": "YES"
+        }
+      ],
+      "that": null,
+      "topic": null,
+      "setTopic": null,
+      "templates": [
+        [
+          {
+            "kind": "text",
+            "text": "Great!"
+          }
+        ]
+      ],
+      "literalCount": 1,
+      "lowCount": 0,
+      "highCount": 0,
+      "wildcardTier": 2
+    },
+    {
+      "id": 5,
+      "patternSource": "NO",
+      "pattern": [
+        {
+          "kind": "literal",
+          "word": "NO"
+        }
+      ],
+      "that": null,
+      "topic": null,
+      "setTopic": null,
+      "templates": [
+        [
+          {
+            "kind": "text",
+            "text": "Alright, got it."
+          }
+        ]
+      ],
+      "literalCount": 1,
+      "lowCount": 0,
+      "highCount": 0,
+      "wildcardTier": 2
+    },
+    {
+      "id": 6,
+      "patternSource": "I AM HAPPY",
+      "pattern": [
+        {
+          "kind": "literal",
+          "word": "I"
+        },
+        {
+          "kind": "literal",
+          "word": "AM"
+        },
+        {
+          "kind": "literal",
+          "word": "HAPPY"
+        }
+      ],
+      "that": null,
+      "topic": null,
+      "setTopic": null,
+      "templates": [
+        [
+          {
+            "kind": "text",
+            "text": "That's wonderful to hear!"
+          }
+        ]
+      ],
+      "literalCount": 3,
+      "lowCount": 0,
+      "highCount": 0,
+      "wildcardTier": 2
+    },
+    {
+      "id": 7,
+      "patternSource": "I FEEL ANXIOUS",
+      "pattern": [
+        {
+          "kind": "literal",
+          "word": "I"
+        },
+        {
+          "kind": "literal",
+          "word": "FEEL"
+        },
+        {
+          "kind": "literal",
+          "word": "ANXIOUS"
+        }
+      ],
+      "that": null,
+      "topic": null,
+      "setTopic": null,
+      "templates": [
+        [
+          {
+            "kind": "text",
+            "text": "That sounds tough. Deep breaths -- I'm here if you want to talk it through."
+          }
+        ]
+      ],
+      "literalCount": 3,
+      "lowCount": 0,
+      "highCount": 0,
+      "wildcardTier": 2
+    },
+    {
+      "id": 8,
+      "patternSource": "I AM STRESSED",
+      "pattern": [
+        {
+          "kind": "literal",
+          "word": "I"
+        },
+        {
+          "kind": "literal",
+          "word": "AM"
+        },
+        {
+          "kind": "literal",
+          "word": "STRESSED"
+        }
+      ],
+      "that": null,
+      "topic": null,
+      "setTopic": null,
+      "templates": [
+        [
+          {
+            "kind": "text",
+            "text": "Stress is rough. Is there something specific weighing on you?"
+          }
+        ]
+      ],
+      "literalCount": 3,
+      "lowCount": 0,
+      "highCount": 0,
+      "wildcardTier": 2
+    },
+    {
+      "id": 9,
+      "patternSource": "I AM TIRED",
+      "pattern": [
+        {
+          "kind": "literal",
+          "word": "I"
+        },
+        {
+          "kind": "literal",
+          "word": "AM"
+        },
+        {
+          "kind": "literal",
+          "word": "TIRED"
+        }
+      ],
+      "that": null,
+      "topic": null,
+      "setTopic": null,
+      "templates": [
+        [
+          {
+            "kind": "text",
+            "text": "Sounds like you could use some rest."
+          }
+        ]
+      ],
+      "literalCount": 3,
+      "lowCount": 0,
+      "highCount": 0,
+      "wildcardTier": 2
+    },
+    {
+      "id": 10,
+      "patternSource": "I AM BORED",
+      "pattern": [
+        {
+          "kind": "literal",
+          "word": "I"
+        },
+        {
+          "kind": "literal",
+          "word": "AM"
+        },
+        {
+          "kind": "literal",
+          "word": "BORED"
+        }
+      ],
+      "that": null,
+      "topic": null,
+      "setTopic": null,
+      "templates": [
+        [
+          {
+            "kind": "text",
+            "text": "Want me to suggest something to talk about, or just chat for a bit?"
+          }
+        ]
+      ],
+      "literalCount": 3,
+      "lowCount": 0,
+      "highCount": 0,
+      "wildcardTier": 2
+    },
+    {
+      "id": 11,
+      "patternSource": "BYE",
+      "pattern": [
+        {
+          "kind": "literal",
+          "word": "BYE"
+        }
+      ],
+      "that": null,
+      "topic": null,
+      "setTopic": null,
+      "templates": [
+        [
+          {
+            "kind": "text",
+            "text": "Bye! Take care."
+          }
+        ]
+      ],
+      "literalCount": 1,
+      "lowCount": 0,
+      "highCount": 0,
+      "wildcardTier": 2
+    },
+    {
+      "id": 12,
+      "patternSource": "GOODBYE",
+      "pattern": [
+        {
+          "kind": "literal",
+          "word": "GOODBYE"
+        }
+      ],
+      "that": null,
+      "topic": null,
+      "setTopic": "FAREWELL",
+      "templates": [
+        [
+          {
+            "kind": "text",
+            "text": "Goodbye! Talk to you again soon."
+          }
+        ]
+      ],
+      "literalCount": 1,
+      "lowCount": 0,
+      "highCount": 0,
+      "wildcardTier": 2
+    },
+    {
+      "id": 13,
+      "patternSource": "SEE YOU",
+      "pattern": [
+        {
+          "kind": "literal",
+          "word": "SEE"
+        },
+        {
+          "kind": "literal",
+          "word": "YOU"
+        }
+      ],
+      "that": null,
+      "topic": "FAREWELL",
+      "setTopic": null,
+      "templates": [
+        [
+          {
+            "kind": "text",
+            "text": "See you too -- take care!"
+          }
+        ]
+      ],
+      "literalCount": 2,
+      "lowCount": 0,
+      "highCount": 0,
+      "wildcardTier": 2
+    },
+    {
+      "id": 14,
+      "patternSource": "SEE YOU",
+      "pattern": [
+        {
+          "kind": "literal",
+          "word": "SEE"
+        },
+        {
+          "kind": "literal",
+          "word": "YOU"
+        }
+      ],
+      "that": null,
+      "topic": null,
+      "setTopic": null,
+      "templates": [
+        [
+          {
+            "kind": "text",
+            "text": "See you around!"
+          }
+        ]
+      ],
+      "literalCount": 2,
+      "lowCount": 0,
+      "highCount": 0,
+      "wildcardTier": 2
+    },
+    {
+      "id": 15,
+      "patternSource": "GOOD NIGHT",
+      "pattern": [
+        {
+          "kind": "literal",
+          "word": "GOOD"
+        },
+        {
+          "kind": "literal",
+          "word": "NIGHT"
+        }
+      ],
+      "that": null,
+      "topic": null,
+      "setTopic": null,
+      "templates": [
+        [
+          {
+            "kind": "text",
+            "text": "Good night! Sleep well."
+          }
+        ]
+      ],
+      "literalCount": 2,
+      "lowCount": 0,
+      "highCount": 0,
+      "wildcardTier": 2
+    },
+    {
+      "id": 16,
+      "patternSource": "TALK TO YOU LATER",
+      "pattern": [
+        {
+          "kind": "literal",
+          "word": "TALK"
+        },
+        {
+          "kind": "literal",
+          "word": "TO"
+        },
+        {
+          "kind": "literal",
+          "word": "YOU"
+        },
+        {
+          "kind": "literal",
+          "word": "LATER"
+        }
+      ],
+      "that": null,
+      "topic": null,
+      "setTopic": null,
+      "templates": [
+        [
+          {
+            "kind": "text",
+            "text": "Sounds good, talk soon!"
+          }
+        ]
+      ],
+      "literalCount": 4,
+      "lowCount": 0,
+      "highCount": 0,
+      "wildcardTier": 2
+    },
+    {
+      "id": 17,
+      "patternSource": "HELLO",
+      "pattern": [
+        {
+          "kind": "literal",
+          "word": "HELLO"
+        }
+      ],
+      "that": null,
+      "topic": null,
+      "setTopic": null,
+      "templates": [
+        [
+          {
+            "kind": "text",
+            "text": "Hi there! I'm Benny."
+          }
+        ]
+      ],
+      "literalCount": 1,
+      "lowCount": 0,
+      "highCount": 0,
+      "wildcardTier": 2
+    },
+    {
+      "id": 18,
+      "patternSource": "HI",
+      "pattern": [
+        {
+          "kind": "literal",
+          "word": "HI"
+        }
+      ],
+      "that": null,
+      "topic": null,
+      "setTopic": null,
+      "templates": [
+        [
+          {
+            "kind": "text",
+            "text": "Hey! What's on your mind?"
+          }
+        ]
+      ],
+      "literalCount": 1,
+      "lowCount": 0,
+      "highCount": 0,
+      "wildcardTier": 2
+    },
+    {
+      "id": 19,
+      "patternSource": "HI THERE",
+      "pattern": [
+        {
+          "kind": "literal",
+          "word": "HI"
+        },
+        {
+          "kind": "literal",
+          "word": "THERE"
+        }
+      ],
+      "that": null,
+      "topic": null,
+      "setTopic": null,
+      "templates": [
+        [
+          {
+            "kind": "text",
+            "text": "Hello again! Good to see you."
+          }
+        ]
+      ],
+      "literalCount": 2,
+      "lowCount": 0,
+      "highCount": 0,
+      "wildcardTier": 2
+    },
+    {
+      "id": 20,
+      "patternSource": "HEY BENNY",
+      "pattern": [
+        {
+          "kind": "literal",
+          "word": "HEY"
+        },
+        {
+          "kind": "literal",
+          "word": "BENNY"
+        }
+      ],
+      "that": null,
+      "topic": null,
+      "setTopic": null,
+      "templates": [
+        [
+          {
+            "kind": "text",
+            "text": "Hey! What's up?"
+          }
+        ]
+      ],
+      "literalCount": 2,
+      "lowCount": 0,
+      "highCount": 0,
+      "wildcardTier": 2
+    },
+    {
+      "id": 21,
+      "patternSource": "HELLO *",
+      "pattern": [
+        {
+          "kind": "literal",
+          "word": "HELLO"
+        },
+        {
+          "kind": "wildcard",
+          "wildcard": "*"
+        }
+      ],
+      "that": null,
+      "topic": null,
+      "setTopic": null,
+      "templates": [
+        [
+          {
+            "kind": "text",
+            "text": "Hi "
+          },
+          {
+            "kind": "star",
+            "index": 1
+          },
+          {
+            "kind": "text",
+            "text": "! Good to meet you."
+          }
+        ]
+      ],
+      "literalCount": 1,
+      "lowCount": 0,
+      "highCount": 1,
+      "wildcardTier": 0
+    },
+    {
+      "id": 22,
+      "patternSource": "MY NAME IS *",
+      "pattern": [
+        {
+          "kind": "literal",
+          "word": "MY"
+        },
+        {
+          "kind": "literal",
+          "word": "NAME"
+        },
+        {
+          "kind": "literal",
+          "word": "IS"
+        },
+        {
+          "kind": "wildcard",
+          "wildcard": "*"
+        }
+      ],
+      "that": null,
+      "topic": null,
+      "setTopic": null,
+      "templates": [
+        [
+          {
+            "kind": "text",
+            "text": "Nice to meet you, "
+          },
+          {
+            "kind": "star",
+            "index": 1
+          },
+          {
+            "kind": "text",
+            "text": "!"
+          }
+        ]
+      ],
+      "literalCount": 3,
+      "lowCount": 0,
+      "highCount": 1,
+      "wildcardTier": 0
+    },
+    {
+      "id": 23,
+      "patternSource": "GOOD MORNING",
+      "pattern": [
+        {
+          "kind": "literal",
+          "word": "GOOD"
+        },
+        {
+          "kind": "literal",
+          "word": "MORNING"
+        }
+      ],
+      "that": null,
+      "topic": null,
+      "setTopic": null,
+      "templates": [
+        [
+          {
+            "kind": "text",
+            "text": "Good morning! Hope your day's off to a good start."
+          }
+        ]
+      ],
+      "literalCount": 2,
+      "lowCount": 0,
+      "highCount": 0,
+      "wildcardTier": 2
+    },
+    {
+      "id": 24,
+      "patternSource": "GOOD _",
+      "pattern": [
+        {
+          "kind": "literal",
+          "word": "GOOD"
+        },
+        {
+          "kind": "wildcard",
+          "wildcard": "_"
+        }
+      ],
+      "that": null,
+      "topic": null,
+      "setTopic": null,
+      "templates": [
+        [
+          {
+            "kind": "text",
+            "text": "Good "
+          },
+          {
+            "kind": "star",
+            "index": 1
+          },
+          {
+            "kind": "text",
+            "text": " to you too!"
+          }
+        ]
+      ],
+      "literalCount": 1,
+      "lowCount": 1,
+      "highCount": 0,
+      "wildcardTier": 1
+    },
+    {
+      "id": 25,
+      "patternSource": "WHAT CAN YOU DO",
+      "pattern": [
+        {
+          "kind": "literal",
+          "word": "WHAT"
+        },
+        {
+          "kind": "literal",
+          "word": "CAN"
+        },
+        {
+          "kind": "literal",
+          "word": "YOU"
+        },
+        {
+          "kind": "literal",
+          "word": "DO"
+        }
+      ],
+      "that": null,
+      "topic": null,
+      "setTopic": null,
+      "templates": [
+        [
+          {
+            "kind": "text",
+            "text": "I can chat with you! I'm a small experimental language model, so I'm best at conversation -- not deep research or up-to-the-minute facts."
+          }
+        ]
+      ],
+      "literalCount": 4,
+      "lowCount": 0,
+      "highCount": 0,
+      "wildcardTier": 2
+    },
+    {
+      "id": 26,
+      "patternSource": "ARE YOU AN AI",
+      "pattern": [
+        {
+          "kind": "literal",
+          "word": "ARE"
+        },
+        {
+          "kind": "literal",
+          "word": "YOU"
+        },
+        {
+          "kind": "literal",
+          "word": "AN"
+        },
+        {
+          "kind": "literal",
+          "word": "AI"
+        }
+      ],
+      "that": null,
+      "topic": null,
+      "setTopic": null,
+      "templates": [
+        [
+          {
+            "kind": "text",
+            "text": "Yep, I'm Benny -- a small ternary-weight language model that runs right here in your browser, no server involved."
+          }
+        ]
+      ],
+      "literalCount": 4,
+      "lowCount": 0,
+      "highCount": 0,
+      "wildcardTier": 2
+    },
+    {
+      "id": 27,
+      "patternSource": "ARE YOU A ROBOT",
+      "pattern": [
+        {
+          "kind": "literal",
+          "word": "ARE"
+        },
+        {
+          "kind": "literal",
+          "word": "YOU"
+        },
+        {
+          "kind": "literal",
+          "word": "A"
+        },
+        {
+          "kind": "literal",
+          "word": "ROBOT"
+        }
+      ],
+      "that": null,
+      "topic": null,
+      "setTopic": null,
+      "templates": [
+        [
+          {
+            "kind": "text",
+            "text": "Not quite a robot -- more like a tiny neural network with a fast, predictable pattern-matcher in front of it."
+          }
+        ]
+      ],
+      "literalCount": 4,
+      "lowCount": 0,
+      "highCount": 0,
+      "wildcardTier": 2
+    },
+    {
+      "id": 28,
+      "patternSource": "WHAT ARE YOU",
+      "pattern": [
+        {
+          "kind": "literal",
+          "word": "WHAT"
+        },
+        {
+          "kind": "literal",
+          "word": "ARE"
+        },
+        {
+          "kind": "literal",
+          "word": "YOU"
+        }
+      ],
+      "that": null,
+      "topic": null,
+      "setTopic": null,
+      "templates": [
+        [
+          {
+            "kind": "text",
+            "text": "I'm Benny -- part deterministic pattern-matcher, part small neural network. Ask me anything!"
+          }
+        ]
+      ],
+      "literalCount": 3,
+      "lowCount": 0,
+      "highCount": 0,
+      "wildcardTier": 2
+    },
+    {
+      "id": 29,
+      "patternSource": "WHO MADE YOU",
+      "pattern": [
+        {
+          "kind": "literal",
+          "word": "WHO"
+        },
+        {
+          "kind": "literal",
+          "word": "MADE"
+        },
+        {
+          "kind": "literal",
+          "word": "YOU"
+        }
+      ],
+      "that": null,
+      "topic": null,
+      "setTopic": null,
+      "templates": [
+        [
+          {
+            "kind": "text",
+            "text": "I was built as an engineering showcase project called BNAI -- ternary weights, a from-scratch WASM runtime, and a small AIML layer."
+          }
+        ]
+      ],
+      "literalCount": 3,
+      "lowCount": 0,
+      "highCount": 0,
+      "wildcardTier": 2
+    },
+    {
+      "id": 30,
+      "patternSource": "HOW DO YOU WORK",
+      "pattern": [
+        {
+          "kind": "literal",
+          "word": "HOW"
+        },
+        {
+          "kind": "literal",
+          "word": "DO"
+        },
+        {
+          "kind": "literal",
+          "word": "YOU"
+        },
+        {
+          "kind": "literal",
+          "word": "WORK"
+        }
+      ],
+      "that": null,
+      "topic": null,
+      "setTopic": null,
+      "templates": [
+        [
+          {
+            "kind": "text",
+            "text": "Two layers: a fast, predictable pattern-matcher answers common things right away (that's what just answered this!), and a small neural model handles anything the patterns don't cover. It's a deliberate cost/latency choice, not a shortcut -- deterministic where determinism is sufficient, neural only where necessary."
+          }
+        ]
+      ],
+      "literalCount": 4,
+      "lowCount": 0,
+      "highCount": 0,
+      "wildcardTier": 2
+    },
+    {
+      "id": 31,
+      "patternSource": "ARE YOU REAL",
+      "pattern": [
+        {
+          "kind": "literal",
+          "word": "ARE"
+        },
+        {
+          "kind": "literal",
+          "word": "YOU"
+        },
+        {
+          "kind": "literal",
+          "word": "REAL"
+        }
+      ],
+      "that": null,
+      "topic": null,
+      "setTopic": null,
+      "templates": [
+        [
+          {
+            "kind": "text",
+            "text": "Real enough to be having this conversation with you!"
+          }
+        ]
+      ],
+      "literalCount": 3,
+      "lowCount": 0,
+      "highCount": 0,
+      "wildcardTier": 2
+    },
+    {
+      "id": 32,
+      "patternSource": "WHATS YOUR NAME",
+      "pattern": [
+        {
+          "kind": "literal",
+          "word": "WHATS"
+        },
+        {
+          "kind": "literal",
+          "word": "YOUR"
+        },
+        {
+          "kind": "literal",
+          "word": "NAME"
+        }
+      ],
+      "that": null,
+      "topic": null,
+      "setTopic": null,
+      "templates": [
+        [
+          {
+            "kind": "text",
+            "text": "I'm Benny!"
+          }
+        ]
+      ],
+      "literalCount": 3,
+      "lowCount": 0,
+      "highCount": 0,
+      "wildcardTier": 2
+    },
+    {
+      "id": 33,
+      "patternSource": "WHAT IS YOUR NAME",
+      "pattern": [
+        {
+          "kind": "literal",
+          "word": "WHAT"
+        },
+        {
+          "kind": "literal",
+          "word": "IS"
+        },
+        {
+          "kind": "literal",
+          "word": "YOUR"
+        },
+        {
+          "kind": "literal",
+          "word": "NAME"
+        }
+      ],
+      "that": null,
+      "topic": null,
+      "setTopic": null,
+      "templates": [
+        [
+          {
+            "kind": "text",
+            "text": "I'm Benny!"
+          }
+        ]
+      ],
+      "literalCount": 4,
+      "lowCount": 0,
+      "highCount": 0,
+      "wildcardTier": 2
+    },
+    {
+      "id": 34,
+      "patternSource": "WHO ARE YOU",
+      "pattern": [
+        {
+          "kind": "literal",
+          "word": "WHO"
+        },
+        {
+          "kind": "literal",
+          "word": "ARE"
+        },
+        {
+          "kind": "literal",
+          "word": "YOU"
+        }
+      ],
+      "that": null,
+      "topic": null,
+      "setTopic": null,
+      "templates": [
+        [
+          {
+            "kind": "text",
+            "text": "I'm Benny, a small hybrid deterministic/neural chatbot. Nice to meet you."
+          }
+        ]
+      ],
+      "literalCount": 3,
+      "lowCount": 0,
+      "highCount": 0,
+      "wildcardTier": 2
+    },
+    {
+      "id": 35,
+      "patternSource": "HOW ARE YOU",
+      "pattern": [
+        {
+          "kind": "literal",
+          "word": "HOW"
+        },
+        {
+          "kind": "literal",
+          "word": "ARE"
+        },
+        {
+          "kind": "literal",
+          "word": "YOU"
+        }
+      ],
+      "that": null,
+      "topic": null,
+      "setTopic": null,
+      "templates": [
+        [
+          {
+            "kind": "text",
+            "text": "I'm doing well, thanks for asking!"
+          }
+        ],
+        [
+          {
+            "kind": "text",
+            "text": "Can't complain -- just humming along on ternary weights!"
+          }
+        ],
+        [
+          {
+            "kind": "text",
+            "text": "Pretty good! How about you?"
+          }
+        ]
+      ],
+      "literalCount": 3,
+      "lowCount": 0,
+      "highCount": 0,
+      "wildcardTier": 2
+    },
+    {
+      "id": 36,
+      "patternSource": "HOW ARE YOU DOING",
+      "pattern": [
+        {
+          "kind": "literal",
+          "word": "HOW"
+        },
+        {
+          "kind": "literal",
+          "word": "ARE"
+        },
+        {
+          "kind": "literal",
+          "word": "YOU"
+        },
+        {
+          "kind": "literal",
+          "word": "DOING"
+        }
+      ],
+      "that": null,
+      "topic": null,
+      "setTopic": null,
+      "templates": [
+        [
+          {
+            "kind": "text",
+            "text": "Doing great, thanks!"
+          }
+        ],
+        [
+          {
+            "kind": "text",
+            "text": "All good on my end. How about you?"
+          }
+        ]
+      ],
+      "literalCount": 4,
+      "lowCount": 0,
+      "highCount": 0,
+      "wildcardTier": 2
+    },
+    {
+      "id": 37,
+      "patternSource": "WHATS UP",
+      "pattern": [
+        {
+          "kind": "literal",
+          "word": "WHATS"
+        },
+        {
+          "kind": "literal",
+          "word": "UP"
+        }
+      ],
+      "that": null,
+      "topic": null,
+      "setTopic": null,
+      "templates": [
+        [
+          {
+            "kind": "text",
+            "text": "Not much, just here chatting with you!"
+          }
+        ]
+      ],
+      "literalCount": 2,
+      "lowCount": 0,
+      "highCount": 0,
+      "wildcardTier": 2
+    },
+    {
+      "id": 38,
+      "patternSource": "WHAT DO YOU THINK ABOUT *",
+      "pattern": [
+        {
+          "kind": "literal",
+          "word": "WHAT"
+        },
+        {
+          "kind": "literal",
+          "word": "DO"
+        },
+        {
+          "kind": "literal",
+          "word": "YOU"
+        },
+        {
+          "kind": "literal",
+          "word": "THINK"
+        },
+        {
+          "kind": "literal",
+          "word": "ABOUT"
+        },
+        {
+          "kind": "wildcard",
+          "wildcard": "*"
+        }
+      ],
+      "that": null,
+      "topic": null,
+      "setTopic": null,
+      "templates": [
+        [
+          {
+            "kind": "text",
+            "text": "That's an interesting question about "
+          },
+          {
+            "kind": "star",
+            "index": 1
+          },
+          {
+            "kind": "text",
+            "text": " -- I don't have strong personal opinions, but I'm happy to explore it with you."
+          }
+        ]
+      ],
+      "literalCount": 5,
+      "lowCount": 0,
+      "highCount": 1,
+      "wildcardTier": 0
+    },
+    {
+      "id": 39,
+      "patternSource": "DO YOU LIKE *",
+      "pattern": [
+        {
+          "kind": "literal",
+          "word": "DO"
+        },
+        {
+          "kind": "literal",
+          "word": "YOU"
+        },
+        {
+          "kind": "literal",
+          "word": "LIKE"
+        },
+        {
+          "kind": "wildcard",
+          "wildcard": "*"
+        }
+      ],
+      "that": null,
+      "topic": null,
+      "setTopic": null,
+      "templates": [
+        [
+          {
+            "kind": "text",
+            "text": "I don't have personal preferences the way you do, but I find "
+          },
+          {
+            "kind": "star",
+            "index": 1
+          },
+          {
+            "kind": "text",
+            "text": " genuinely interesting to talk about."
+          }
+        ]
+      ],
+      "literalCount": 3,
+      "lowCount": 0,
+      "highCount": 1,
+      "wildcardTier": 0
+    },
+    {
+      "id": 40,
+      "patternSource": "TELL ME A JOKE",
+      "pattern": [
+        {
+          "kind": "literal",
+          "word": "TELL"
+        },
+        {
+          "kind": "literal",
+          "word": "ME"
+        },
+        {
+          "kind": "literal",
+          "word": "A"
+        },
+        {
+          "kind": "literal",
+          "word": "JOKE"
+        }
+      ],
+      "that": null,
+      "topic": null,
+      "setTopic": null,
+      "templates": [
+        [
+          {
+            "kind": "text",
+            "text": "Why did the ternary weight cross the road? To get to the other {-1, 0, +1}!"
+          }
+        ],
+        [
+          {
+            "kind": "text",
+            "text": "I'd tell you a joke about floating point, but I might round it wrong."
+          }
+        ],
+        [
+          {
+            "kind": "text",
+            "text": "I'm better at math than jokes -- 1.58 bits is about my precision level for comedy."
+          }
+        ]
+      ],
+      "literalCount": 4,
+      "lowCount": 0,
+      "highCount": 0,
+      "wildcardTier": 2
+    },
+    {
+      "id": 41,
+      "patternSource": "THANKS",
+      "pattern": [
+        {
+          "kind": "literal",
+          "word": "THANKS"
+        }
+      ],
+      "that": null,
+      "topic": null,
+      "setTopic": null,
+      "templates": [
+        [
+          {
+            "kind": "text",
+            "text": "You're welcome!"
+          }
+        ]
+      ],
+      "literalCount": 1,
+      "lowCount": 0,
+      "highCount": 0,
+      "wildcardTier": 2
+    },
+    {
+      "id": 42,
+      "patternSource": "THANK YOU",
+      "pattern": [
+        {
+          "kind": "literal",
+          "word": "THANK"
+        },
+        {
+          "kind": "literal",
+          "word": "YOU"
+        }
+      ],
+      "that": null,
+      "topic": null,
+      "setTopic": null,
+      "templates": [
+        [
+          {
+            "kind": "text",
+            "text": "Anytime!"
+          }
+        ]
+      ],
+      "literalCount": 2,
+      "lowCount": 0,
+      "highCount": 0,
+      "wildcardTier": 2
+    },
+    {
+      "id": 43,
+      "patternSource": "THANKS BENNY",
+      "pattern": [
+        {
+          "kind": "literal",
+          "word": "THANKS"
+        },
+        {
+          "kind": "literal",
+          "word": "BENNY"
+        }
+      ],
+      "that": null,
+      "topic": null,
+      "setTopic": null,
+      "templates": [
+        [
+          {
+            "kind": "text",
+            "text": "Of course!"
+          }
+        ]
+      ],
+      "literalCount": 2,
+      "lowCount": 0,
+      "highCount": 0,
+      "wildcardTier": 2
+    }
+  ]
+}

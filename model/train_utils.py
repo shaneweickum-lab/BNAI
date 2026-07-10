@@ -52,13 +52,21 @@ def load_config(path: str) -> dict:
 
 
 def save_checkpoint(model, optimizer, step, tokens_seen, cfg, output_dir):
+    """`cfg["model"]` in the saved payload is always overwritten with the
+    live model's own config (`vars(model.cfg)`), never trusted from the
+    caller's yaml `cfg` as-is -- some training scripts (sft.py,
+    phase2_train.py) intentionally have no `model:` section in their yaml
+    (the architecture is derived from whatever checkpoint is loaded, not
+    duplicated per-config), so blindly persisting the yaml's `cfg` would
+    silently drop the architecture info a later `--resume` needs to
+    reconstruct the model at all."""
     os.makedirs(output_dir, exist_ok=True)
     payload = {
         "model_state_dict": model.state_dict(),
         "optimizer_state_dict": optimizer.state_dict(),
         "step": step,
         "tokens_seen": tokens_seen,
-        "config": cfg,
+        "config": {**cfg, "model": vars(model.cfg)},
     }
     path = os.path.join(output_dir, "latest.pt")
     tmp_path = path + ".tmp"
@@ -68,9 +76,16 @@ def save_checkpoint(model, optimizer, step, tokens_seen, cfg, output_dir):
 
 
 @torch.no_grad()
-def estimate_perplexity(model, val_batches, device, amp_dtype=torch.bfloat16, max_batches: int = 50) -> float:
+def estimate_perplexity(
+    model, val_batches, device, amp_dtype=torch.bfloat16, max_batches: int = 50, mask_fn=None
+) -> float:
     """Mean cross-entropy over up to `max_batches` batches from `val_batches`
-    (an iterable of {"input_ids","targets"} dicts), converted to perplexity."""
+    (an iterable of {"input_ids","targets",...} dicts), converted to
+    perplexity. `mask_fn`, if given, is called as `mask_fn(batch)` and its
+    return value passed as the model's `attn_mask` -- used by Phase 2's
+    folded-sequence validation (model/folding.py) to build each batch's
+    segment-conditioning mask from its `block_ids`/`is_gist` fields; Phase
+    1/SFT callers omit it and get ordinary causal attention as before."""
     was_training = model.training
     model.eval()
     total_loss = 0.0
@@ -81,8 +96,9 @@ def estimate_perplexity(model, val_batches, device, amp_dtype=torch.bfloat16, ma
             break
         input_ids = batch["input_ids"].to(device)
         targets = batch["targets"].to(device)
+        attn_mask = mask_fn(batch).to(device) if mask_fn is not None else None
         with torch.autocast(device_type=device.type, dtype=amp_dtype, enabled=use_amp):
-            _, loss = model(input_ids, targets)
+            _, loss = model(input_ids, targets, attn_mask=attn_mask)
         total_loss += loss.item()
         n += 1
     if was_training:

@@ -115,7 +115,6 @@ def main():
     torch.manual_seed(args.seed)
 
     cfg = load_config(args.config)
-    model_cfg = BNAIConfig(**cfg["model"])
     train_cfg = cfg["training"]
     output_dir = cfg["output_dir"]
 
@@ -123,7 +122,31 @@ def main():
     print(f"[sft] device={device}")
 
     tokenizer = BPETokenizer.load(args.tokenizer)
-    model = BNAILanguageModel(model_cfg).to(device)
+
+    # Architecture always comes from a checkpoint (resumed SFT run, or the
+    # base pretrain checkpoint being fine-tuned), never from sft.yaml -- SFT
+    # continues training whatever architecture the checkpoint already is,
+    # so one sft.yaml works across the whole parameter ladder (Stage 1-4)
+    # instead of needing a duplicate per-stage config that must be kept in
+    # sync with the base config by hand.
+    start_step = 0
+    tokens_seen = 0
+    latest_ckpt = os.path.join(output_dir, "latest.pt")
+    resumed = args.resume and os.path.exists(latest_ckpt)
+    if resumed:
+        payload = torch.load(latest_ckpt, map_location=device)
+        model_cfg = BNAIConfig(**payload["config"]["model"])
+        model = BNAILanguageModel(model_cfg).to(device)
+        model.load_state_dict(payload["model_state_dict"])
+        start_step = payload["step"]
+        tokens_seen = payload["tokens_seen"]
+        print(f"[sft] resumed from step {start_step} ({tokens_seen:,} tokens seen)")
+    else:
+        base_payload = torch.load(args.base_checkpoint, map_location=device)
+        model_cfg = BNAIConfig(**base_payload["config"]["model"])
+        model = BNAILanguageModel(model_cfg).to(device)
+        model.load_state_dict(base_payload["model_state_dict"])
+        print(f"[sft] loaded base checkpoint from {args.base_checkpoint} ({model_cfg.d_model=}, {model_cfg.n_layers=})")
 
     optimizer = torch.optim.AdamW(
         model.parameters(),
@@ -131,27 +154,8 @@ def main():
         betas=(train_cfg["adam_beta1"], train_cfg["adam_beta2"]),
         weight_decay=train_cfg["weight_decay"],
     )
-
-    start_step = 0
-    tokens_seen = 0
-    latest_ckpt = os.path.join(output_dir, "latest.pt")
-    if args.resume and os.path.exists(latest_ckpt):
-        payload = torch.load(latest_ckpt, map_location=device)
-        model.load_state_dict(payload["model_state_dict"])
+    if resumed:
         optimizer.load_state_dict(payload["optimizer_state_dict"])
-        start_step = payload["step"]
-        tokens_seen = payload["tokens_seen"]
-        print(f"[sft] resumed from step {start_step} ({tokens_seen:,} tokens seen)")
-    else:
-        base_payload = torch.load(args.base_checkpoint, map_location=device)
-        base_model_cfg = BNAIConfig(**base_payload["config"]["model"])
-        if base_model_cfg != model_cfg:
-            raise ValueError(
-                "sft.yaml's model config must exactly match the base checkpoint's architecture "
-                f"(base={base_model_cfg}, sft={model_cfg})"
-            )
-        model.load_state_dict(base_payload["model_state_dict"])
-        print(f"[sft] loaded base checkpoint from {args.base_checkpoint}")
 
     grad_accum_steps = max(
         1, train_cfg["effective_batch_tokens"] // (train_cfg["micro_batch_size"] * model_cfg.context_len)

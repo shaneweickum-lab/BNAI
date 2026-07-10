@@ -62,6 +62,29 @@ Safari or a simulator.
 | Held-out validation perplexity | TBD | TBD | TBD (target: ternary within 10-15% of fp16) |
 | Reduced HellaSwag/LAMBADA-style accuracy | TBD | TBD | — |
 
+## 4. Deterministic-layer efficiency (TBD — needs real usage data)
+
+The direct evidence for "avoid unnecessary neural inference" (see the
+hybrid-deterministic framing in `README.md`/`docs/model_card.md`), not just
+asserted: what fraction of turns the AIML layer resolves without ever
+invoking the neural fallback. The demo UI (`web/app/demo/page.tsx`) surfaces
+this live per-session; record aggregate numbers here once there's real
+conversational usage to measure, not synthetic smoke-test traffic.
+
+| Metric | Value |
+|---|---|
+| % of turns resolved by a single, unambiguous AIML match | TBD |
+| % of turns with no AIML match (routed to GPT) | TBD |
+| % of turns with an ambiguous AIML match (routed to GPT) | TBD |
+
+## 5. Context folding (TBD — needs Phase 2 training)
+
+Gist-token-count sweep (4/8/16) results, extended-context perplexity, and
+needle-in-haystack accuracy: see `docs/training_log.md`'s Phase 2 section
+(not duplicated here). Full architecture/positioning: `docs/context_folding.md`.
+The harness (`model/eval.py --folding-eval`) is built and tested; no real
+Phase 2 training has run yet, so there are no real numbers to report.
+
 ## Open measurement questions (spec Section 11 — confirm before/at deploy)
 
 - Real ternary tok/s on the M5 during Phase 3's smoke test, vs a freshly

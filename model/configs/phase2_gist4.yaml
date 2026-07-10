@@ -1,0 +1,41 @@
+# BNAI V1.0 ("Benny") -- Phase 2 continued pretraining, gist-token-count
+# sweep point: 4 gist tokens per 100-token block (spec Section 1's sweep:
+# 4, 8, 16 -- treat the ratio as a hypothesis to validate empirically via
+# docs/benchmarks.md's eval results, not a fixed spec).
+#
+# Resumes from a Phase 1 (Stage 4, ~123.7M) checkpoint -- see
+# model/phase2_train.py's module docstring for why no architecture change
+# or checkpoint surgery is needed to introduce gist tokens.
+
+folding:
+  gist_token_count: 4
+  fold_block_size: 100  # spec 2.2 starting point; tune later per Section 1
+  window_len: 4096      # deliberately > model context_len (2048): the whole
+                         # point is training on documents long enough that
+                         # folding is actually exercised (spec Section 3)
+
+training:
+  # Starting point, NOT Chinchilla-derived like Phase 1 -- spec Section 3
+  # says train "until gist token behavior stabilizes", determined
+  # empirically via the eval plan (docs/benchmarks.md), not a fixed budget.
+  target_tokens: 300_000_000
+  effective_batch_tokens: 262_144   # smaller than Phase 1's 524_288: window_len is 2x context_len, same memory budget per step
+  micro_batch_size: 4
+  peak_lr: 1.0e-4   # lower than Phase 1's 3e-4 (continued pretraining on a stable backbone, not from scratch)
+  warmup_fraction: 0.02
+  min_lr_fraction: 0.10
+  adam_beta1: 0.9
+  adam_beta2: 0.95
+  weight_decay: 0.1
+  grad_clip_norm: 1.0
+  amp_dtype: bfloat16
+  log_interval_steps: 10
+  checkpoint_interval_steps: 250
+
+data:
+  train_dataset: "HuggingFaceFW/fineweb-edu"
+  train_split: "train"
+  text_field: "text"
+  val_fraction: 0.008
+
+output_dir: "checkpoints/phase2_gist4"

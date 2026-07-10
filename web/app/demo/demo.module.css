@@ -124,6 +124,28 @@
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: var(--fg-muted);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.resolvedBadge {
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  text-transform: none;
+  letter-spacing: normal;
+  border-radius: 999px;
+  padding: 1px 8px;
+  border: 1px solid var(--border);
+}
+
+.resolvedBadgeDeterministic {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.resolvedBadgeGenerated {
+  color: var(--fg-muted);
 }
 
 .bubble {

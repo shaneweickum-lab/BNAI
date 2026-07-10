@@ -45,15 +45,17 @@ async function init() {
   }
 }
 
-const CHAT_TEMPLATE = (prompt: string) => `<|user|>\n${prompt}\n<|assistant|>\n`;
-
 async function generate(requestId: string, prompt: string, maxNewTokens: number) {
   if (!session) {
     post({ type: "error", requestId, message: "Session not initialized yet." });
     return;
   }
 
-  const promptIds = encode(session, CHAT_TEMPLATE(prompt));
+  // `prompt` is treated as pre-rendered, complete multi-turn text (built by
+  // lib/dialogue/dialogueManager.ts using the model's <|system|>/<|user|>/
+  // <|assistant|>/<|end|> chat tokens) -- the worker no longer wraps it in
+  // its own single-turn template, it just encodes what it's given.
+  const promptIds = encode(session, prompt);
   if (promptIds.length === 0) {
     post({ type: "error", requestId, message: "Prompt encoded to zero tokens." });
     return;

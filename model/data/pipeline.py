@@ -26,8 +26,10 @@ from typing import Iterable, Iterator, Optional
 import torch
 from torch.utils.data import IterableDataset
 
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # model/ -- for folding.py
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "tokenizer"))
 from bpe import BPETokenizer, BOS_ID, EOS_ID, SYSTEM_ID, USER_ID, ASSISTANT_ID, TURN_END_ID  # noqa: E402
+from folding import fold_document  # noqa: E402
 
 
 def _split_bucket(key: str, num_buckets: int = 10_000) -> int:
@@ -114,6 +116,82 @@ class TokenBlockDataset(IterableDataset):
                 input_ids = torch.tensor(block[:-1], dtype=torch.long)
                 targets = torch.tensor(block[1:], dtype=torch.long)
                 yield {"input_ids": input_ids, "targets": targets}
+
+
+class FoldedTokenBlockDataset(IterableDataset):
+    """Phase 2 continued-pretraining data (spec Section 3): like
+    `TokenBlockDataset`, but documents are folded (`model/folding.py`'s
+    `fold_document`) before being windowed, and each yielded example
+    additionally carries the `block_ids`/`is_gist` metadata
+    `folding.build_batched_segment_conditioning_mask` needs to build that
+    window's attention mask. Per spec Section 6, documents are simply
+    concatenated (not filtered for length) to build long-document training
+    sequences -- simpler, no new licensing/sourcing question, matching the
+    recommended starting point."""
+
+    def __init__(
+        self,
+        documents: Iterable[str],
+        tokenizer: BPETokenizer,
+        window_len: int,
+        gist_ids: list,
+        fold_block_size: int,
+        val_fraction: float = 0.0,
+        split: str = "train",
+    ):
+        super().__init__()
+        self.documents = documents
+        self.tokenizer = tokenizer
+        self.window_len = window_len
+        self.gist_ids = gist_ids
+        self.fold_block_size = fold_block_size
+        self.val_fraction = val_fraction
+        self.split = split
+
+    def __iter__(self) -> Iterator[dict]:
+        buffer_ids: list[int] = []
+        buffer_block_ids: list[int] = []
+        buffer_is_gist: list[bool] = []
+        next_block_id = 0
+
+        for doc_idx, text in enumerate(self.documents):
+            key = f"{doc_idx}:{text[:64]}"
+            in_val = is_val_split(key, self.val_fraction)
+            if self.split == "val" and not in_val:
+                continue
+            if self.split == "train" and in_val:
+                continue
+
+            raw_ids = [BOS_ID] + self.tokenizer.encode(text) + [EOS_ID]
+            folded = fold_document(raw_ids, self.fold_block_size, self.gist_ids)
+
+            buffer_ids.extend(folded.token_ids)
+            buffer_block_ids.extend(b + next_block_id for b in folded.block_ids)
+            buffer_is_gist.extend(folded.is_gist)
+            next_block_id += (folded.block_ids[-1] + 1) if folded.block_ids else 0
+
+            while len(buffer_ids) >= self.window_len + 1:
+                window_ids = buffer_ids[: self.window_len + 1]
+                window_block_ids = buffer_block_ids[: self.window_len + 1]
+                window_is_gist = buffer_is_gist[: self.window_len + 1]
+                buffer_ids = buffer_ids[self.window_len :]
+                buffer_block_ids = buffer_block_ids[self.window_len :]
+                buffer_is_gist = buffer_is_gist[self.window_len :]
+
+                input_ids = torch.tensor(window_ids[:-1], dtype=torch.long)
+                targets = torch.tensor(window_ids[1:], dtype=torch.long)
+                # block_ids/is_gist for the *input* positions (same convention
+                # as input_ids/targets: position i's metadata describes the
+                # token at that input position, used to build that position's
+                # mask row).
+                block_ids = torch.tensor(window_block_ids[:-1], dtype=torch.long)
+                is_gist = torch.tensor(window_is_gist[:-1], dtype=torch.bool)
+                yield {
+                    "input_ids": input_ids,
+                    "targets": targets,
+                    "block_ids": block_ids,
+                    "is_gist": is_gist,
+                }
 
 
 # ---------------------------------------------------------------------------

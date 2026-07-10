@@ -176,7 +176,9 @@ class CausalSelfAttention(nn.Module):
         self.v_proj = make_projection(cfg, cfg.d_model, cfg.d_model)
         self.o_proj = make_projection(cfg, cfg.d_model, cfg.d_model)
 
-    def forward(self, x: torch.Tensor, cos: torch.Tensor, sin: torch.Tensor) -> torch.Tensor:
+    def forward(
+        self, x: torch.Tensor, cos: torch.Tensor, sin: torch.Tensor, attn_mask: torch.Tensor | None = None
+    ) -> torch.Tensor:
         b, t, d = x.shape
         q = self.q_proj(x).view(b, t, self.n_heads, self.head_dim).transpose(1, 2)
         k = self.k_proj(x).view(b, t, self.n_heads, self.head_dim).transpose(1, 2)
@@ -185,7 +187,15 @@ class CausalSelfAttention(nn.Module):
         q = apply_rope(q, cos, sin)
         k = apply_rope(k, cos, sin)
 
-        out = F.scaled_dot_product_attention(q, k, v, is_causal=True)
+        # attn_mask (Phase 2 context-folding only, see model/folding.py):
+        # a boolean [t, t] segment-conditioning mask that replaces plain
+        # causal ordering with "causal, but raw tokens of an earlier
+        # folded block are excluded too". Phase 1 / no folding passes
+        # attn_mask=None and gets exactly the prior is_causal=True behavior.
+        if attn_mask is not None:
+            out = F.scaled_dot_product_attention(q, k, v, attn_mask=attn_mask)
+        else:
+            out = F.scaled_dot_product_attention(q, k, v, is_causal=True)
         out = out.transpose(1, 2).contiguous().view(b, t, d)
         return self.o_proj(out)
 
@@ -209,8 +219,10 @@ class TransformerBlock(nn.Module):
         self.ffn_norm = RMSNorm(cfg.d_model, cfg.rms_eps)
         self.ffn = SwiGLUFeedForward(cfg)
 
-    def forward(self, x: torch.Tensor, cos: torch.Tensor, sin: torch.Tensor) -> torch.Tensor:
-        x = x + self.attn(self.attn_norm(x), cos, sin)
+    def forward(
+        self, x: torch.Tensor, cos: torch.Tensor, sin: torch.Tensor, attn_mask: torch.Tensor | None = None
+    ) -> torch.Tensor:
+        x = x + self.attn(self.attn_norm(x), cos, sin, attn_mask)
         x = x + self.ffn(self.ffn_norm(x))
         return x
 
@@ -243,16 +255,27 @@ class BNAILanguageModel(nn.Module):
             self._rope_cache_len = seq_len
         return self._cos[:seq_len], self._sin[:seq_len]
 
-    def forward(self, input_ids: torch.Tensor, targets: torch.Tensor | None = None):
+    def forward(
+        self,
+        input_ids: torch.Tensor,
+        targets: torch.Tensor | None = None,
+        attn_mask: torch.Tensor | None = None,
+    ):
         b, t = input_ids.shape
-        if t > self.cfg.context_len:
+        # The context_len bound is Phase 1's ordinary usage guarantee. Phase
+        # 2 folded training sequences (model/folding.py) are deliberately
+        # longer in raw physical length than context_len -- that's the
+        # point of folding -- so this check is skipped whenever a custom
+        # attn_mask is supplied (i.e. the caller is doing folded training,
+        # not ordinary inference/pretraining).
+        if attn_mask is None and t > self.cfg.context_len:
             raise ValueError(f"sequence length {t} exceeds context_len {self.cfg.context_len}")
 
         x = self.embed_tokens(input_ids)
         cos, sin = self._rope(t, x.device, x.dtype)
 
         for layer in self.layers:
-            x = layer(x, cos, sin)
+            x = layer(x, cos, sin, attn_mask)
 
         x = self.final_norm(x)
         logits = self.lm_head(x)

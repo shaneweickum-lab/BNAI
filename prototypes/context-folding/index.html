@@ -1,0 +1,836 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Benny :: Context Folding Sandbox (UX Prototype)</title>
+<!--
+  =========================================================================
+  CONTEXT FOLDING — UX / DATA-FLOW PROTOTYPE
+  =========================================================================
+  This is a standalone, single-file, vanilla-JS demo. It is deliberately
+  isolated from the rest of the BNAI repo (no build step, no npm deps, no
+  relation to the Next.js app or the Python model code elsewhere in this
+  project). Its only job is to validate the UX/data-flow of a "context
+  folding" memory-compression concept BEFORE a real trained compression
+  head gets built into the actual model, which is being done separately,
+  elsewhere, by someone else.
+
+  IMPORTANT — READ BEFORE BELIEVING ANY NUMBER ON THIS PAGE:
+  - The "gist tokens" produced by fold() are NOT a real learned semantic
+    compression. They are 4 heuristically-picked tokens (frequency, a
+    naive noun-ish guess, last-token-before-punctuation, and a fixed
+    offset sample). A real system would use a trained encoder.
+  - All energy/battery figures are simulated or illustrative reference
+    numbers, not measurements of real hardware or real vendor-published
+    cloud energy costs. Every number on this page is paired with a
+    disclaimer in the UI. Do not remove those disclaimers when editing.
+  =========================================================================
+-->
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  :root {
+    color-scheme: dark;
+  }
+  body {
+    background: #05080a;
+    font-family: 'JetBrains Mono', 'SFMono-Regular', ui-monospace, Menlo, Consolas, monospace;
+  }
+  .scanlines {
+    background-image: repeating-linear-gradient(
+      to bottom,
+      rgba(255, 255, 255, 0.015) 0px,
+      rgba(255, 255, 255, 0.015) 1px,
+      transparent 1px,
+      transparent 3px
+    );
+  }
+  .glow-green { text-shadow: 0 0 8px rgba(74, 222, 128, 0.55); }
+  .glow-amber { text-shadow: 0 0 8px rgba(251, 191, 36, 0.5); }
+  .term-border { border: 1px solid rgba(74, 222, 128, 0.25); }
+  .term-panel {
+    background: linear-gradient(180deg, rgba(15, 23, 22, 0.9), rgba(6, 10, 10, 0.95));
+    box-shadow: inset 0 0 40px rgba(74, 222, 128, 0.04);
+  }
+  .badge-folded {
+    transition: transform 120ms ease, box-shadow 120ms ease;
+    cursor: pointer;
+  }
+  .badge-folded:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 0 12px rgba(56, 189, 248, 0.35);
+  }
+  .badge-expanded {
+    animation: expandIn 180ms ease-out;
+  }
+  @keyframes expandIn {
+    from { opacity: 0; transform: scaleY(0.85); }
+    to { opacity: 1; transform: scaleY(1); }
+  }
+  .bar-fill {
+    transition: width 700ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .blink {
+    animation: blink 1.4s steps(2, start) infinite;
+  }
+  @keyframes blink {
+    to { visibility: hidden; }
+  }
+  ::-webkit-scrollbar { height: 8px; width: 8px; }
+  ::-webkit-scrollbar-thumb { background: rgba(74, 222, 128, 0.25); border-radius: 4px; }
+</style>
+</head>
+<body class="scanlines min-h-screen text-slate-200">
+
+<div class="max-w-7xl mx-auto px-4 py-6">
+
+  <!-- ===================== HEADER / GLOBAL DISCLAIMER ===================== -->
+  <header class="term-border term-panel rounded-lg px-5 py-4 mb-6">
+    <div class="flex flex-wrap items-start justify-between gap-4">
+      <div>
+        <h1 class="text-xl md:text-2xl font-bold text-green-400 glow-green tracking-wide">
+          BENNY // CONTEXT-FOLDING SANDBOX
+        </h1>
+        <p class="text-xs md:text-sm text-slate-400 mt-1 max-w-2xl">
+          A UX / data-flow demonstration of a memory-compression concept. It is
+          <span class="text-amber-400 font-semibold">not</span> the real compression
+          algorithm and produces <span class="text-amber-400 font-semibold">no real inference</span>.
+          Every metric below is simulated or clearly labeled as an illustrative estimate.
+        </p>
+      </div>
+      <div id="battery-badge" class="text-xs md:text-sm px-3 py-2 rounded border term-border bg-black/30 whitespace-nowrap">
+        <span class="text-slate-500">Power Source: checking&hellip;</span>
+      </div>
+    </div>
+  </header>
+
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+    <!-- ===================== ZONE A — SANDBOX CONTROL PANEL ===================== -->
+    <section class="term-border term-panel rounded-lg p-5 flex flex-col gap-4">
+      <h2 class="text-sm font-bold text-green-400 glow-green tracking-widest uppercase">
+        Zone A — Sandbox Control Panel
+      </h2>
+
+      <div>
+        <label for="input-text" class="block text-xs text-slate-400 mb-1">
+          Paste ~100&ndash;500 words of source text below. This textarea feeds a
+          <span class="italic">simulated</span> fold/unfold pipeline &mdash; nothing here calls
+          a real model or a real inference endpoint.
+        </label>
+        <textarea id="input-text" rows="12"
+          class="w-full rounded bg-black/50 border term-border text-slate-100 text-sm p-3 focus:outline-none focus:ring-1 focus:ring-green-400/60 resize-y"
+          placeholder="Simulation only: type or paste a few paragraphs here. This text will be sliced into 100-token blocks and each block will be &quot;folded&quot; into 4 placeholder gist tokens, mimicking (not performing) semantic memory compression. No network call, no real model, no persistence."></textarea>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-3 text-xs">
+        <span class="px-2 py-1 rounded bg-black/40 border term-border">
+          Live tokens: <span id="live-token-count" class="text-green-400 font-bold">0</span>
+        </span>
+        <span class="px-2 py-1 rounded bg-black/40 border term-border">
+          Window budget: <span id="window-budget-badge" class="font-bold">0 / 2048</span>
+        </span>
+        <span class="px-2 py-1 rounded bg-black/40 border term-border">
+          Vault entries: <span id="vault-size-badge" class="text-cyan-400 font-bold">0</span>
+          <span class="text-slate-500">(in-memory only &mdash; cleared on refresh)</span>
+        </span>
+      </div>
+
+      <div class="flex flex-wrap gap-3">
+        <button id="btn-fold"
+          class="px-4 py-2 rounded bg-green-700/30 border border-green-500/50 text-green-300 text-sm font-semibold hover:bg-green-700/50 disabled:opacity-30 disabled:cursor-not-allowed transition"
+          disabled>
+          Fold Context
+        </button>
+
+        <div class="flex items-center gap-2">
+          <input id="unfold-key-input" type="text" list="vault-key-suggestions" autocomplete="off"
+            placeholder="0x7A1F"
+            class="rounded bg-black/50 border term-border text-slate-200 text-xs px-2 py-2 w-28 disabled:opacity-30"
+            disabled />
+          <datalist id="vault-key-suggestions"></datalist>
+          <button id="btn-unfold"
+            class="px-4 py-2 rounded bg-cyan-700/30 border border-cyan-500/50 text-cyan-300 text-sm font-semibold hover:bg-cyan-700/50 disabled:opacity-30 disabled:cursor-not-allowed transition"
+            disabled>
+            Unfold Context
+          </button>
+        </div>
+      </div>
+      <p class="text-[11px] text-slate-500 -mt-2">
+        Type or pick a Vault key above (suggestions come from current Vault entries, but you can enter
+        any value — including a stale or made-up key — to see the "unknown key" error state).
+      </p>
+
+      <div id="unfold-error" class="hidden text-xs text-red-400 border border-red-500/40 bg-red-950/30 rounded px-3 py-2">
+        Unknown key &mdash; this block may have been evicted or never folded.
+      </div>
+
+      <div id="unfold-result" class="hidden text-xs bg-black/40 border term-border rounded px-3 py-2 max-h-40 overflow-y-auto">
+      </div>
+
+      <div class="mt-auto pt-2 border-t border-white/5">
+        <h3 class="text-xs uppercase tracking-widest text-slate-500 mb-2">System Log</h3>
+        <ul id="system-log" class="text-[11px] text-slate-400 space-y-1 max-h-32 overflow-y-auto font-mono"></ul>
+      </div>
+    </section>
+
+    <!-- ===================== ZONE B — TELEMETRY STREAM ===================== -->
+    <section class="term-border term-panel rounded-lg p-5 flex flex-col gap-5">
+      <h2 class="text-sm font-bold text-green-400 glow-green tracking-widest uppercase">
+        Zone B — Telemetry Stream
+      </h2>
+
+      <div>
+        <h3 class="text-xs uppercase tracking-widest text-slate-500 mb-2 flex items-center justify-between">
+          <span>Active Context Window <span class="text-slate-600">(2048-token budget)</span></span>
+        </h3>
+        <div id="active-window-strip"
+          class="min-h-[64px] flex flex-wrap gap-2 items-start content-start bg-black/30 rounded border term-border p-3">
+          <span class="text-xs text-slate-600 italic">No blocks folded yet.</span>
+        </div>
+      </div>
+
+      <div>
+        <h3 class="text-xs uppercase tracking-widest text-slate-500 mb-2">
+          Energy Comparison Panel
+          <span class="text-slate-600 normal-case tracking-normal">(runs after each Fold Context)</span>
+        </h3>
+        <div id="energy-panel" class="space-y-3 bg-black/30 rounded border term-border p-3">
+          <p class="text-xs text-slate-500 italic">Fold some text to generate a simulated energy comparison.</p>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <footer class="text-[11px] text-slate-600 mt-6 text-center">
+    Prototype for internal UX validation only. No data leaves this browser tab; the only external
+    network request this page makes is loading the Tailwind CDN script itself.
+  </footer>
+
+</div>
+
+<script>
+'use strict';
+
+/* =========================================================================
+ * 1. TOKENIZER (mock BPE)
+ * =======================================================================
+ * This is NOT a real BPE tokenizer. It's a whitespace/punctuation-boundary
+ * regex splitter that is "good enough" to demonstrate token-budget UX
+ * (2048-token windows, 100-token fold blocks, etc). A production tokenizer
+ * would use a trained vocabulary and subword merges.
+ * ---------------------------------------------------------------------- */
+const TOKEN_REGEX = /[\w']+|[.,!?;:]/g;
+
+/** Pure function: count mock-BPE tokens in a string. */
+function tokenCount(text) {
+  if (!text) return 0;
+  const matches = text.match(TOKEN_REGEX);
+  return matches ? matches.length : 0;
+}
+
+/**
+ * Returns an array of { token, index } for every mock token in `text`,
+ * where `index` is the character offset in the source string. Keeping the
+ * offsets lets fold() slice out the *exact* original substring for a block
+ * (preserving original spacing/casing) instead of re-joining tokens with
+ * single spaces, which would lossily normalize whitespace.
+ */
+function tokenizeWithOffsets(text) {
+  const out = [];
+  const re = new RegExp(TOKEN_REGEX);
+  let m;
+  while ((m = re.exec(text)) !== null) {
+    out.push({ token: m[0], index: m.index });
+  }
+  return out;
+}
+
+/* =========================================================================
+ * 2. CONTEXT FOLDER (tokenizer + fold/unfold + Vault)
+ * =======================================================================
+ * State model:
+ *  - vault: Map<key, VaultEntry> — in-memory ONLY. Refreshing the page
+ *    clears it. There is no localStorage/IndexedDB/network persistence
+ *    anywhere in this file, by design (this is a short demo session, not
+ *    a long-running app; see spec discussion on Vault caps).
+ *  - activeWindow: ordered Block[] representing the current simulated
+ *    2048-token context window.
+ * ---------------------------------------------------------------------- */
+const FOLD_BLOCK_SIZE = 100;      // tokens per fold block
+const MAX_WINDOW_TOKENS = 2048;   // simulated context window budget
+const FOLDED_TOKEN_COST = 4;      // a folded block "costs" 4 gist tokens
+
+// Small stopword list used only to bias gist-token #1 (frequency pick)
+// away from filler words. This is a heuristic, not a linguistic resource.
+const STOPWORDS = new Set([
+  'the','a','an','and','or','but','is','are','was','were','be','been','being',
+  'of','to','in','on','at','it','this','that','these','those','with','for',
+  'as','by','from','its','if','then','so','not','no','do','does','did','has',
+  'have','had','he','she','they','we','you','i','me','him','her','them','my',
+  'your','his','their','our','than','also','into','over','under','up','down',
+  'out','about','again','further','there','here','when','where','why','how',
+  'all','any','both','each','few','more','most','other','some','such','only',
+  'own','same','too','very','can','will','just','should','now','which','who',
+  'whom','what'
+]);
+
+class ContextFolder {
+  constructor() {
+    /** @type {Map<string, {key:string, originalText:string, originalTokenCount:number, gistTokens:string[], createdAt:number}>} */
+    this.vault = new Map();
+    /** @type {Array<{key:string, state:'expanded'|'folded', tokenCount:number}>} */
+    this.activeWindow = [];
+    // Memoizes text -> key so repeated folds of the *exact same* text always
+    // resolve to the same displayed key (stability for the common case).
+    this._textToKey = new Map();
+  }
+
+  get vaultSize() {
+    return this.vault.size;
+  }
+
+  get windowTokenTotal() {
+    return this.activeWindow.reduce((sum, b) => sum + b.tokenCount, 0);
+  }
+
+  /**
+   * djb2 hash -> 4 uppercase hex chars, prefixed "0x". Not crypto-grade,
+   * doesn't need to be for a demo.
+   */
+  static _djb2Hash(str) {
+    let hash = 5381;
+    for (let i = 0; i < str.length; i++) {
+      // hash * 33 + charCode, kept in unsigned 32-bit range
+      hash = ((hash << 5) + hash + str.charCodeAt(i)) >>> 0;
+    }
+    return hash >>> 0;
+  }
+
+  static _hashToKey(str) {
+    const h = ContextFolder._djb2Hash(str);
+    const hex = (h & 0xffff).toString(16).toUpperCase().padStart(4, '0');
+    return '0x' + hex;
+  }
+
+  /**
+   * Derive a stable display key for a block of text.
+   *
+   * TRADE-OFF: the key space is only 4 hex chars (65,536 buckets), so hash
+   * collisions between two *different* blocks of text are possible in a
+   * long demo session. We handle this by:
+   *   1. Memoizing text -> key, so folding the exact same text twice always
+   *      returns the same key (stability for the common, expected case).
+   *   2. On an actual collision (same hash, different text already in the
+   *      vault under that key), appending a numeric suffix internally so
+   *      the Map never silently overwrites another block's Vault entry.
+   * A production system would use a full content hash (or just not need
+   * human-legible keys at all); for a UX demo, short readable keys win.
+   */
+  _keyForText(text) {
+    if (this._textToKey.has(text)) return this._textToKey.get(text);
+    const base = ContextFolder._hashToKey(text);
+    let key = base;
+    let counter = 1;
+    while (this.vault.has(key) && this.vault.get(key).originalText !== text) {
+      counter += 1;
+      key = `${base}-${counter}`;
+      console.warn(`[ContextFolder] Hash collision on ${base}; disambiguated to ${key}.`);
+    }
+    this._textToKey.set(text, key);
+    return key;
+  }
+
+  /**
+   * Gist derivation ("the Fold"). NOT lossless, NOT a learned semantic
+   * summary. Picks 4 tokens deterministically:
+   *   1. highest-frequency non-stopword token in the block
+   *   2. first noun-like token (heuristic: capitalized, or length >= 7 chars)
+   *   3. last token before terminal punctuation
+   *   4. token at a fixed offset (tokenCount // 2)
+   *
+   * PLACEHOLDER: real BitLinear encoder replaces this. This function only
+   * exists to give the UI something plausible-looking to render while the
+   * real compression head is built elsewhere.
+   */
+  _deriveGist(tokens) {
+    const wordTokens = tokens.filter((t) => /[\w']/.test(t));
+
+    // 1. Highest-frequency non-stopword token (first occurrence wins ties).
+    const freq = new Map();
+    for (const w of wordTokens) {
+      const lw = w.toLowerCase();
+      if (STOPWORDS.has(lw)) continue;
+      freq.set(lw, (freq.get(lw) || 0) + 1);
+    }
+    let topToken = '—'; // em dash placeholder if nothing qualifies
+    let topCount = 0;
+    for (const w of wordTokens) {
+      const lw = w.toLowerCase();
+      if (STOPWORDS.has(lw)) continue;
+      const c = freq.get(lw) || 0;
+      if (c > topCount) {
+        topCount = c;
+        topToken = w;
+      }
+    }
+
+    // 2. First "noun-like" token: capitalized (not the very first word,
+    // to avoid just picking up sentence-initial capitalization) or long.
+    let nounLike =
+      wordTokens.find((w, i) => i > 0 && (/^[A-Z]/.test(w) || w.length >= 7)) ||
+      wordTokens[0] ||
+      '—';
+
+    // 3. Last token before terminal punctuation: scan from the end of the
+    // whole block (incl. punctuation tokens) for the last word-like token.
+    let lastBeforePunct = '—';
+    for (let i = tokens.length - 1; i >= 0; i--) {
+      if (/[\w']/.test(tokens[i])) {
+        lastBeforePunct = tokens[i];
+        break;
+      }
+    }
+
+    // 4. Token sampled at a fixed offset within THIS block.
+    const midIdx = Math.floor(tokens.length / 2);
+    const midToken = tokens[midIdx] || '—';
+
+    return [topToken, nounLike, lastBeforePunct, midToken];
+  }
+
+  /**
+   * Fold raw text into one or more 100-token blocks. Each block:
+   *   - gets a deterministic key
+   *   - gets 4 placeholder gist tokens
+   *   - is stored in the Vault (full fidelity, for later unfold())
+   *   - is pushed into activeWindow as a folded Block (costs 4 tokens)
+   * The last block may be shorter than 100 tokens; it is NOT padded, and is
+   * still eligible for folding once the text is submitted.
+   *
+   * Returns the array of newly-created Blocks (there may be more than one
+   * if the input text spans multiple 100-token chunks).
+   */
+  fold(text) {
+    const tokens = tokenizeWithOffsets(text);
+    const newBlocks = [];
+
+    for (let start = 0; start < tokens.length; start += FOLD_BLOCK_SIZE) {
+      const chunk = tokens.slice(start, start + FOLD_BLOCK_SIZE);
+      if (chunk.length === 0) continue;
+
+      const first = chunk[0];
+      const last = chunk[chunk.length - 1];
+      const originalText = text.slice(first.index, last.index + last.token.length);
+      const tokenStrings = chunk.map((c) => c.token);
+
+      const key = this._keyForText(originalText);
+      const gistTokens = this._deriveGist(tokenStrings);
+
+      const entry = {
+        key,
+        originalText,
+        originalTokenCount: tokenStrings.length,
+        gistTokens,
+        createdAt: Date.now(),
+      };
+      this.vault.set(key, entry);
+
+      /** @type {{key:string,state:'folded',tokenCount:number}} */
+      const block = { key, state: 'folded', tokenCount: FOLDED_TOKEN_COST };
+      this.activeWindow.push(block);
+      newBlocks.push(block);
+    }
+
+    this._enforceBudget();
+    return newBlocks;
+  }
+
+  /**
+   * Enforce the 2048-token active-window budget, FIFO. Folded blocks are
+   * evicted first (oldest-first); expanded blocks are protected because a
+   * user just inspected them (evicting something on-screen is bad UX). If
+   * only expanded blocks remain and we're still over budget, we evict the
+   * oldest expanded block too and log a console warning — an edge case
+   * that's unlikely in a demo, but must never crash.
+   */
+  _enforceBudget() {
+    let total = this.windowTokenTotal;
+    let i = 0;
+    while (total > MAX_WINDOW_TOKENS && i < this.activeWindow.length) {
+      if (this.activeWindow[i].state === 'folded') {
+        const [removed] = this.activeWindow.splice(i, 1);
+        total -= removed.tokenCount;
+        // do not advance i: the array just shifted left under us
+      } else {
+        i += 1;
+      }
+    }
+
+    while (total > MAX_WINDOW_TOKENS && this.activeWindow.length > 0) {
+      console.warn(
+        '[ContextFolder] Only expanded blocks remain and the window is still ' +
+        'over budget. Evicting the oldest expanded block (edge case).'
+      );
+      const removed = this.activeWindow.shift();
+      total -= removed.tokenCount;
+    }
+  }
+
+  /**
+   * Look up a key in the Vault. Returns the full original text, or null if
+   * the key is unknown (evicted from the caller's mental model, or never
+   * folded, or mistyped) — callers must surface this as a UI error state,
+   * never let it throw.
+   *
+   * NOTE ON TOKEN BUDGET: flipping a Block's state to "expanded" is a VIEW
+   * action only. It does NOT change that block's tokenCount, and therefore
+   * does NOT change the active window's token total / 2048 budget math.
+   * Expanding a badge shows you the original text for inspection; it does
+   * not re-inject the full 100 raw tokens back into the simulated window.
+   */
+  unfold(key) {
+    const entry = this.vault.get(key);
+    if (!entry) return null;
+    const block = this.activeWindow.find((b) => b.key === key);
+    if (block) block.state = 'expanded';
+    return entry.originalText;
+  }
+
+  /**
+   * View-only re-collapse: flips the state flag back to "folded". The text
+   * stays in the Vault the whole time; there is no re-hashing and no data
+   * is discarded (design decision from the spec, not re-litigated here).
+   */
+  refold(key) {
+    const block = this.activeWindow.find((b) => b.key === key);
+    if (block) block.state = 'folded';
+  }
+}
+
+/* =========================================================================
+ * 3. BATTERY TELEMETRY MODULE
+ * =======================================================================
+ * Reality check baked into the design: navigator.getBattery() is
+ * deprecated, removed entirely in Firefox and Safari, and inconsistently
+ * available even in Chromium. The calm fallback message is the PRIMARY
+ * expected path for most visitors, not an edge case bolted on afterward.
+ * ---------------------------------------------------------------------- */
+const batteryBadgeEl = document.getElementById('battery-badge');
+
+function renderBatteryBadge(html, tone) {
+  const toneClasses = {
+    offgrid: 'text-green-400 glow-green font-semibold',
+    plugged: 'text-slate-300',
+    calm: 'text-slate-400',
+  };
+  batteryBadgeEl.innerHTML = `<span class="${toneClasses[tone] || toneClasses.calm}">${html}</span>`;
+}
+
+async function initBatteryTelemetry() {
+  if ('getBattery' in navigator) {
+    try {
+      const battery = await navigator.getBattery();
+
+      const update = () => {
+        if (battery.charging === false) {
+          renderBatteryBadge('&#128994; NO ACTIVE GRID USAGE &mdash; 100% OFF-GRID LOCAL EXECUTION', 'offgrid');
+        } else {
+          renderBatteryBadge('&#128268; Plugged In &mdash; Local Compute', 'plugged');
+        }
+      };
+
+      // No polling: subscribe to the events the API actually provides.
+      battery.addEventListener('chargingchange', update);
+      battery.addEventListener('levelchange', update);
+      update();
+
+      window.addEventListener('beforeunload', () => {
+        battery.removeEventListener('chargingchange', update);
+        battery.removeEventListener('levelchange', update);
+      }, { once: true });
+
+      return;
+    } catch (err) {
+      // Permission denied or API misbehaved — fall through to the calm
+      // fallback below rather than surfacing an error to the visitor.
+      console.warn('[BatteryTelemetry] getBattery() failed, using fallback.', err);
+    }
+  }
+
+  // PRIMARY expected path for most visitors (Firefox, Safari, many mobile
+  // browsers, or any Chromium build without battery info available).
+  renderBatteryBadge('Power Source: Local Device Compute', 'calm');
+}
+
+/* =========================================================================
+ * 4. ENERGY COMPARISON ENGINE
+ * =======================================================================
+ * Every number here is either:
+ *   (a) derived from an actual performance.now() timing of the fold
+ *       operation combined with a stated, made-up wattage assumption, or
+ *   (b) a static "illustrative estimate" for cloud tiers, explicitly
+ *       labeled as NOT vendor-published data.
+ * None of this should ever be read as a real hardware power measurement or
+ * a real vendor energy-cost figure.
+ * ---------------------------------------------------------------------- */
+const BENNY_WATTS_ASSUMPTION = 15; // Simulated local CPU draw assumption, in watts
+const CLOUD_REFERENCE_ROWS = [
+  { label: 'Frontier API tier', wh: 0.340 },
+  { label: 'Reasoning-model tier', wh: 4.000 },
+];
+
+function computeBennyWh(elapsedMs) {
+  const seconds = elapsedMs / 1000;
+  return (seconds * BENNY_WATTS_ASSUMPTION) / 3600;
+}
+
+function renderEnergyPanel(elapsedMs) {
+  const bennyWh = computeBennyWh(elapsedMs);
+
+  const rows = [
+    {
+      label: 'Benny (this fold)',
+      wh: bennyWh,
+      accent: 'bg-green-500',
+      note:
+        `Simulated local CPU draw, ${BENNY_WATTS_ASSUMPTION}W assumption &middot; ` +
+        `fold operation took ${elapsedMs.toFixed(2)}ms wall-clock. This is NOT a measured ` +
+        `hardware power reading &mdash; it's (seconds &times; ${BENNY_WATTS_ASSUMPTION}W) / 3600.`,
+    },
+    {
+      label: CLOUD_REFERENCE_ROWS[0].label,
+      wh: CLOUD_REFERENCE_ROWS[0].wh,
+      accent: 'bg-sky-500',
+      note: '(illustrative estimate, not vendor-published data)',
+    },
+    {
+      label: CLOUD_REFERENCE_ROWS[1].label,
+      wh: CLOUD_REFERENCE_ROWS[1].wh,
+      accent: 'bg-fuchsia-500',
+      note: '(illustrative estimate, not vendor-published data)',
+    },
+  ];
+
+  const maxWh = Math.max(...rows.map((r) => r.wh), 0.000001);
+
+  const panel = document.getElementById('energy-panel');
+  panel.innerHTML = '';
+
+  const disclaimer = document.createElement('p');
+  disclaimer.className = 'text-[11px] text-amber-400/90 italic mb-1';
+  disclaimer.textContent =
+    'All figures below are simulated or illustrative reference numbers, not measured ' +
+    'hardware power or vendor-published cloud energy costs.';
+  panel.appendChild(disclaimer);
+
+  rows.forEach((row, idx) => {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'text-xs';
+
+    const headerRow = document.createElement('div');
+    headerRow.className = 'flex justify-between items-baseline mb-1';
+    headerRow.innerHTML = `
+      <span class="text-slate-300 font-semibold">${row.label}</span>
+      <span class="text-slate-400">${row.wh.toFixed(3)} Wh</span>
+    `;
+    wrapper.appendChild(headerRow);
+
+    const track = document.createElement('div');
+    track.className = 'w-full h-3 rounded bg-black/50 border border-white/5 overflow-hidden';
+    const fill = document.createElement('div');
+    fill.className = `bar-fill h-full ${row.accent} rounded`;
+    fill.style.width = '0%';
+    track.appendChild(fill);
+    wrapper.appendChild(track);
+
+    const noteEl = document.createElement('p');
+    noteEl.className = 'text-[10px] text-slate-500 mt-1';
+    // Percentage delta (if any) is only ever rendered inline, immediately
+    // next to its disclaimer — never as a standalone number — so it can't
+    // be screenshotted out of context as an unqualified marketing claim.
+    if (idx > 0 && row.wh > 0) {
+      const deltaPct = Math.max(0, Math.round((1 - bennyWh / row.wh) * 100));
+      noteEl.innerHTML = `~${deltaPct}% less than this row's simulated Benny figure, per the illustrative estimate above &mdash; ${row.note}`;
+    } else {
+      noteEl.innerHTML = row.note;
+    }
+    wrapper.appendChild(noteEl);
+
+    panel.appendChild(wrapper);
+
+    // Animate on next frame so the CSS transition actually plays.
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        const pct = Math.max(2, (row.wh / maxWh) * 100);
+        fill.style.width = pct + '%';
+      });
+    });
+  });
+}
+
+/* =========================================================================
+ * 5. UI WIRING
+ * ---------------------------------------------------------------------- */
+const folder = new ContextFolder();
+
+const inputTextEl = document.getElementById('input-text');
+const liveTokenCountEl = document.getElementById('live-token-count');
+const windowBudgetBadgeEl = document.getElementById('window-budget-badge');
+const vaultSizeBadgeEl = document.getElementById('vault-size-badge');
+const btnFold = document.getElementById('btn-fold');
+const btnUnfold = document.getElementById('btn-unfold');
+const unfoldKeyInput = document.getElementById('unfold-key-input');
+const vaultKeySuggestionsEl = document.getElementById('vault-key-suggestions');
+const unfoldErrorEl = document.getElementById('unfold-error');
+const unfoldResultEl = document.getElementById('unfold-result');
+const activeWindowStripEl = document.getElementById('active-window-strip');
+const systemLogEl = document.getElementById('system-log');
+
+function logEvent(message) {
+  const li = document.createElement('li');
+  const time = new Date().toLocaleTimeString();
+  li.textContent = `[${time}] ${message}`;
+  systemLogEl.prepend(li);
+  while (systemLogEl.children.length > 40) {
+    systemLogEl.removeChild(systemLogEl.lastChild);
+  }
+}
+
+// --- Debounced live token counter (~150ms) --------------------------------
+let debounceHandle = null;
+function scheduleTokenCountUpdate() {
+  if (debounceHandle) clearTimeout(debounceHandle);
+  debounceHandle = setTimeout(() => {
+    const count = tokenCount(inputTextEl.value);
+    liveTokenCountEl.textContent = String(count);
+    btnFold.disabled = count === 0;
+  }, 150);
+}
+inputTextEl.addEventListener('input', scheduleTokenCountUpdate);
+
+// --- Vault key suggestions (datalist) refresh -------------------------------
+// The input itself accepts ANY typed key (including a stale or made-up one)
+// so the "unknown key" error state is actually reachable through the UI,
+// not just internally. The datalist only supplies autocomplete suggestions.
+function refreshVaultSelect() {
+  const keys = Array.from(folder.vault.keys());
+  vaultKeySuggestionsEl.innerHTML = keys.map((k) => `<option value="${k}"></option>`).join('');
+  const hasKeys = keys.length > 0;
+  unfoldKeyInput.disabled = !hasKeys;
+  btnUnfold.disabled = !hasKeys;
+  vaultSizeBadgeEl.textContent = String(folder.vaultSize);
+}
+
+// --- Active Context Window strip rendering --------------------------------
+function renderActiveWindow() {
+  activeWindowStripEl.innerHTML = '';
+  windowBudgetBadgeEl.textContent = `${folder.windowTokenTotal} / ${MAX_WINDOW_TOKENS}`;
+  windowBudgetBadgeEl.className = folder.windowTokenTotal > MAX_WINDOW_TOKENS
+    ? 'text-red-400 font-bold'
+    : 'text-green-400 font-bold';
+
+  if (folder.activeWindow.length === 0) {
+    activeWindowStripEl.innerHTML = '<span class="text-xs text-slate-600 italic">No blocks folded yet.</span>';
+    return;
+  }
+
+  for (const block of folder.activeWindow) {
+    const entry = folder.vault.get(block.key);
+    const el = document.createElement('span');
+
+    if (block.state === 'folded') {
+      el.className = 'badge-folded px-2 py-1 rounded border border-sky-500/40 bg-sky-900/20 text-sky-300 text-[11px]';
+      el.title = 'Click to preview the original text (view only; does not change the token budget).';
+      el.innerHTML = `[${block.key}] (${block.tokenCount} tokens) &middot; gist: ${entry ? entry.gistTokens.join(', ') : '?'}`;
+      el.addEventListener('click', () => toggleBadge(block.key));
+    } else {
+      el.className = 'badge-expanded px-2 py-2 rounded border border-amber-500/40 bg-amber-900/10 text-amber-200 text-[11px] max-w-full';
+      const preview = entry ? entry.originalText : '(missing from vault)';
+      el.innerHTML = `<div class="flex justify-between gap-2"><span class="font-bold text-amber-300">[${block.key}] expanded &middot; view-only, budget still counts this as ${block.tokenCount} tokens</span></div><div class="mt-1 text-slate-300 whitespace-pre-wrap">${escapeHtml(preview)}</div>`;
+      el.title = 'Click to re-collapse (view only; text stays in the Vault, no re-hashing).';
+      el.addEventListener('click', () => toggleBadge(block.key));
+    }
+
+    activeWindowStripEl.appendChild(el);
+  }
+}
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+function toggleBadge(key) {
+  const block = folder.activeWindow.find((b) => b.key === key);
+  if (!block) return;
+  if (block.state === 'folded') {
+    const text = folder.unfold(key);
+    if (text === null) {
+      logEvent(`ERROR: unfold(${key}) failed unexpectedly (badge existed but vault entry missing).`);
+      return;
+    }
+    logEvent(`Expanded ${key} (view only, budget unaffected).`);
+  } else {
+    folder.refold(key);
+    logEvent(`Re-collapsed ${key} (no re-hashing; text remains in Vault).`);
+  }
+  renderActiveWindow();
+}
+
+// --- Fold Context button ----------------------------------------------------
+btnFold.addEventListener('click', () => {
+  const text = inputTextEl.value.trim();
+  if (!text) return;
+
+  const t0 = performance.now();
+  const newBlocks = folder.fold(text);
+  const t1 = performance.now();
+  const elapsedMs = t1 - t0;
+
+  logEvent(`Folded input into ${newBlocks.length} block(s) in ${elapsedMs.toFixed(2)}ms. Vault size now ${folder.vaultSize}.`);
+
+  renderActiveWindow();
+  refreshVaultSelect();
+  renderEnergyPanel(elapsedMs);
+
+  unfoldErrorEl.classList.add('hidden');
+  unfoldResultEl.classList.add('hidden');
+});
+
+// --- Unfold Context button ---------------------------------------------------
+btnUnfold.addEventListener('click', () => {
+  const key = unfoldKeyInput.value.trim();
+  if (!key) {
+    unfoldErrorEl.textContent = 'Type or pick a Vault key first.';
+    unfoldErrorEl.classList.remove('hidden');
+    return;
+  }
+
+  const text = folder.unfold(key);
+  if (text === null) {
+    unfoldErrorEl.textContent = 'Unknown key — this block may have been evicted or never folded.';
+    unfoldErrorEl.classList.remove('hidden');
+    unfoldResultEl.classList.add('hidden');
+    logEvent(`Unfold failed: unknown key ${key}.`);
+    return;
+  }
+
+  unfoldErrorEl.classList.add('hidden');
+  unfoldResultEl.classList.remove('hidden');
+  unfoldResultEl.innerHTML = `<span class="text-cyan-300 font-bold">[${key}] original text:</span><div class="mt-1 whitespace-pre-wrap text-slate-300">${escapeHtml(text)}</div>`;
+  logEvent(`Unfolded ${key} via explicit lookup (view only).`);
+  renderActiveWindow();
+});
+
+// --- Boot --------------------------------------------------------------------
+initBatteryTelemetry();
+renderActiveWindow();
+refreshVaultSelect();
+scheduleTokenCountUpdate();
+logEvent('Sandbox initialized. Vault is empty and in-memory only.');
+</script>
+</body>
+</html>
