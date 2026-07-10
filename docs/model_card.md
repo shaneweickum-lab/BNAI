@@ -196,7 +196,7 @@ training run has not happened yet.
   training run completes, are both placeholders (synthetic corpus /
   untrained random weights respectively) — used only to prove the
   export → WASM runtime → web demo pipeline end-to-end.
-- The AIML category set (`aiml/categories/`) is a small (44-category)
+- The AIML category set (`aiml/categories/`) is a small (95-category)
   hand-curated seed set, not bootstrapped from real UltraChat/OASST2 data
   — see `aiml/README.md`. Real conversational coverage requires running
   `aiml/tools/bootstrap.py` against the actual datasets plus a real human

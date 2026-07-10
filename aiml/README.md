@@ -112,17 +112,28 @@ aiml/tools/aiml_compiler.py  -->  web/lib/aiml/generated/categories.json
 
 ## Current status
 
-The category set currently in `aiml/categories/` (44 categories: greetings,
-small talk, emotional check-ins, meta questions about the bot, farewells)
-is a **first-pass seed set hand-curated by Claude**, not a bootstrapped-
+The category set currently in `aiml/categories/` (95 categories: greetings,
+small talk, emotional check-ins, meta questions about the bot, farewells,
+honest capability/limitation deflections, politeness/compliments/mild-
+insult handling) is a **hand-curated seed set**, not a bootstrapped-
 from-real-data corpus -- this sandbox has no network access to
-UltraChat/OASST2. It exists to demonstrate the pipeline end-to-end (data
+UltraChat/OASST2 (confirmed still blocked: `huggingface.co` is explicitly
+policy-denied by this environment's egress proxy, not merely
+unconfigured). It exists to demonstrate the pipeline end-to-end (data
 format -> compiler -> matcher -> dialogue manager -> web demo), the same
 way the shipped model checkpoint and tokenizer are currently placeholders
 pending real training (see the top-level README).
 
-To build the real set: run `bootstrap.py` against the actual datasets,
-do a real human review pass over the candidate clusters, then recompile.
-Same licensing question already flagged for FineWeb-Edu/UltraChat/OASST2
-in `docs/model_card.md` applies here too -- confirm terms once, it covers
+The `capabilities.aiml` file is worth calling out specifically: every
+pattern in it is a question where the honest deterministic answer is "no"
+or "I can't verify that" (a real clock, live weather, browsing, persistent
+cross-session memory) -- a fixed template must never assert something
+false just because a fixed string is easy to write, per this project's
+honesty ethos.
+
+To build the real set: run `bootstrap.py` against the actual datasets
+(from an environment with network access to Hugging Face), do a real
+human review pass over the candidate clusters, then recompile. Same
+licensing question already flagged for FineWeb-Edu/UltraChat/OASST2 in
+`docs/model_card.md` applies here too -- confirm terms once, it covers
 both uses.
