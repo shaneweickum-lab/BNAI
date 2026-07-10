@@ -70,6 +70,20 @@ Loss/perplexity/grad-norm/sparsity/tokens-per-sec curves: see
 `checkpoints/*/training_log.jsonl` (written automatically by `train.py`) —
 plot and embed here once real runs exist.
 
+## Phase 2 (context folding) — continued pretraining
+
+Full spec/rationale: `docs/context_folding.md`. Not yet run (needs a stable
+Phase 1 checkpoint above, plus real long-document training data/compute).
+
+| Gist tokens/block | Fold block size | Config | Final train ppl | Extended-context ppl (folded / truncated baseline) | Needle-in-haystack accuracy (folded / truncated baseline) |
+|---|---|---|---|---|---|
+| 4 | 100 | `configs/phase2_gist4.yaml` | TBD | TBD / TBD | TBD / TBD |
+| 8 | 100 | `configs/phase2_gist8.yaml` | TBD | TBD / TBD | TBD / TBD |
+| 16 | 100 | `configs/phase2_gist16.yaml` | TBD | TBD / TBD | TBD / TBD |
+
+Chosen ratio (fill in once the sweep has real results, with reasoning, not
+just the winning number): TBD.
+
 ## Phase 5 — SFT (Stage B)
 
 | | |

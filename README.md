@@ -23,11 +23,12 @@ weights.** See "Status" below for exactly what's real vs. placeholder.
 ## Repository layout
 
 ```
-model/          Python: architecture, tokenizer, data pipeline, train/sft/export/eval
+model/          Python: architecture, tokenizer, data pipeline, train/phase2/sft/export/eval
 aiml/           Deterministic pattern-matching layer: category XML, bootstrap+compile tooling
 runtime/        Rust, compiled to WASM: ternary inference engine + BPE tokenizer
 web/            Next.js app (landing / demo / about), deployed on Vercel
-docs/           model_card.md, training_log.md, benchmarks.md
+prototypes/     Standalone, non-neural UX prototypes (context-folding/ -- simulation only)
+docs/           model_card.md, context_folding.md, training_log.md, benchmarks.md
 ```
 
 ## Quick start
@@ -103,6 +104,29 @@ params, and per-token cost does too), not linearly:
 
 Configs: `model/configs/stage{1,2,3,4}_{25m,50m,75m,125m}_{ternary,fp16_baseline}.yaml`.
 Full rationale and exact architecture per stage: `docs/model_card.md`.
+
+## Context folding (research extension, architecture built, not yet trained)
+
+A learned compression head extends Benny's effective context beyond its
+2048-token window: text is chunked into blocks, each followed by a handful
+of "gist tokens" (ordinary vocabulary entries, no separate encoder/decoder)
+that a segment-conditioning attention mask forces the model to rely on once
+a block is folded, instead of that block's raw tokens. Ternary-native by
+design — the gist pathway trains through the exact same BitLinear-quantized
+stack as everything else, not a full-precision side-channel. Full
+positioning, prior-art comparison, and risk/fallback plan:
+`docs/context_folding.md`.
+
+Two artifacts exist for this, kept deliberately separate:
+- `model/phase2_train.py` — the real, trained version (architecture +
+  training scaffold built and unit-tested; the actual Phase 2 training run
+  needs real long-document data + compute on the M5, same constraint as
+  Phase 1, and has not happened yet).
+- `prototypes/context-folding/index.html` — a standalone, vanilla-JS UX
+  simulation (no real compression, no model weights) used to validate the
+  fold/unfold interaction and telemetry design before the real version was
+  built. Open it directly in a browser; it has no build step and touches
+  nothing else in this repo.
 
 ## Retrain / re-export / redeploy, end to end
 

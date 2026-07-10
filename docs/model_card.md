@@ -174,6 +174,18 @@ loss/perplexity/benchmark numbers below are TBD until then.
 
 Run `model/eval.py` against real checkpoints to fill this in (see README).
 
+## Context folding (research extension)
+
+Full spec, prior-art positioning, and risk/fallback plan:
+`docs/context_folding.md`. Short version: a learned compression head (gist
+tokens + a segment-conditioning attention mask) extends effective context
+beyond 2048 tokens, trained ternary-native (same BitLinear path as the rest
+of the model, no full-precision side-channel) via a two-phase curriculum
+(Phase 1 = this model card's base pretrain; Phase 2 = continued pretraining
+with folding introduced). Architecture and training scaffold are built and
+unit-tested (`model/folding.py`, `model/phase2_train.py`); the real Phase 2
+training run has not happened yet.
+
 ## Known limitations
 
 - Small-model reasoning/knowledge limits — this is not a frontier-scale

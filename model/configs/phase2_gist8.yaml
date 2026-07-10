@@ -1,0 +1,31 @@
+# BNAI V1.0 ("Benny") -- Phase 2 continued pretraining, gist-token-count
+# sweep point: 8 gist tokens per 100-token block. See phase2_gist4.yaml's
+# header comment for the shared rationale (sweep, not a fixed spec).
+
+folding:
+  gist_token_count: 8
+  fold_block_size: 100
+  window_len: 4096
+
+training:
+  target_tokens: 300_000_000
+  effective_batch_tokens: 262_144
+  micro_batch_size: 4
+  peak_lr: 1.0e-4
+  warmup_fraction: 0.02
+  min_lr_fraction: 0.10
+  adam_beta1: 0.9
+  adam_beta2: 0.95
+  weight_decay: 0.1
+  grad_clip_norm: 1.0
+  amp_dtype: bfloat16
+  log_interval_steps: 10
+  checkpoint_interval_steps: 250
+
+data:
+  train_dataset: "HuggingFaceFW/fineweb-edu"
+  train_split: "train"
+  text_field: "text"
+  val_fraction: 0.008
+
+output_dir: "checkpoints/phase2_gist8"

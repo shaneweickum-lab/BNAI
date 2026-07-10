@@ -77,6 +77,14 @@ conversational usage to measure, not synthetic smoke-test traffic.
 | % of turns with no AIML match (routed to GPT) | TBD |
 | % of turns with an ambiguous AIML match (routed to GPT) | TBD |
 
+## 5. Context folding (TBD — needs Phase 2 training)
+
+Gist-token-count sweep (4/8/16) results, extended-context perplexity, and
+needle-in-haystack accuracy: see `docs/training_log.md`'s Phase 2 section
+(not duplicated here). Full architecture/positioning: `docs/context_folding.md`.
+The harness (`model/eval.py --folding-eval`) is built and tested; no real
+Phase 2 training has run yet, so there are no real numbers to report.
+
 ## Open measurement questions (spec Section 11 — confirm before/at deploy)
 
 - Real ternary tok/s on the M5 during Phase 3's smoke test, vs a freshly

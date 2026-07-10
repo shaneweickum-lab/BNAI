@@ -1,0 +1,30 @@
+# Tiny config for exercising phase2_train.py's mechanics quickly (gist
+# token vocab, folded data pipeline, segment-conditioning mask, val
+# perplexity, checkpointing) -- not a stand-in for a real Phase 2 sweep
+# run, which needs configs/phase2_gist{4,8,16}.yaml's full architecture.
+
+folding:
+  gist_token_count: 3
+  fold_block_size: 8
+  window_len: 48
+
+training:
+  target_tokens: 100_000
+  effective_batch_tokens: 1024
+  micro_batch_size: 4
+  peak_lr: 1.0e-4
+  warmup_fraction: 0.1
+  min_lr_fraction: 0.1
+  adam_beta1: 0.9
+  adam_beta2: 0.95
+  weight_decay: 0.1
+  grad_clip_norm: 1.0
+  amp_dtype: bfloat16
+  log_interval_steps: 5
+  checkpoint_interval_steps: 20
+
+data:
+  train_dataset: "unused-for-local-corpus-runs"
+  val_fraction: 0.05
+
+output_dir: "checkpoints/phase2_smoke_test"

@@ -8,9 +8,11 @@ from bpe import BPETokenizer  # noqa: E402
 from data.pipeline import (  # noqa: E402
     ChatExample,
     ChatSFTDataset,
+    FoldedTokenBlockDataset,
     TokenBlockDataset,
     is_val_split,
 )
+from folding import add_gist_tokens, gist_token_ids  # noqa: E402
 
 SAMPLE_DOCS = [f"document number {i} about ternary weight language models and BitNet" for i in range(200)]
 
@@ -79,3 +81,76 @@ def test_chat_sft_dataset_masks_non_assistant_tokens():
     saw_unmasked = any((b["targets"] != -100).any() for b in batches)
     assert saw_masked
     assert saw_unmasked
+
+
+# ---------------------------------------------------------------------------
+# FoldedTokenBlockDataset (Phase 2 continued-pretraining)
+# ---------------------------------------------------------------------------
+
+
+def _tokenizer_with_gist(gist_count=2, model_vocab_size=1000):
+    tok = _tiny_tokenizer()
+    return add_gist_tokens(tok, gist_count, model_vocab_size)
+
+
+def test_folded_dataset_yields_correct_shapes_and_metadata():
+    tok = _tokenizer_with_gist()
+    gids = gist_token_ids(tok, 2)
+    window_len = 32
+    ds = FoldedTokenBlockDataset(
+        SAMPLE_DOCS, tok, window_len=window_len, gist_ids=gids, fold_block_size=10, val_fraction=0.0, split="train"
+    )
+    batches = list(ds)
+    assert len(batches) > 0
+    for b in batches:
+        assert b["input_ids"].shape == (window_len,)
+        assert b["targets"].shape == (window_len,)
+        assert b["block_ids"].shape == (window_len,)
+        assert b["is_gist"].shape == (window_len,)
+
+
+def test_folded_dataset_targets_are_shifted_input():
+    tok = _tokenizer_with_gist()
+    gids = gist_token_ids(tok, 2)
+    ds = FoldedTokenBlockDataset(
+        SAMPLE_DOCS, tok, window_len=16, gist_ids=gids, fold_block_size=10, val_fraction=0.0, split="train"
+    )
+    first = next(iter(ds))
+    assert first["input_ids"][1:].tolist() == first["targets"][:-1].tolist()
+
+
+def test_folded_dataset_marks_gist_positions_correctly():
+    tok = _tokenizer_with_gist(gist_count=2)
+    gids = gist_token_ids(tok, 2)
+    ds = FoldedTokenBlockDataset(
+        SAMPLE_DOCS, tok, window_len=32, gist_ids=gids, fold_block_size=10, val_fraction=0.0, split="train"
+    )
+    first = next(iter(ds))
+    gist_positions = first["is_gist"].nonzero().flatten().tolist()
+    assert len(gist_positions) > 0
+    for pos in gist_positions:
+        assert first["input_ids"][pos].item() in gids
+
+
+def test_folded_dataset_block_ids_are_non_decreasing_across_documents():
+    tok = _tokenizer_with_gist()
+    gids = gist_token_ids(tok, 2)
+    ds = FoldedTokenBlockDataset(
+        SAMPLE_DOCS, tok, window_len=64, gist_ids=gids, fold_block_size=10, val_fraction=0.0, split="train"
+    )
+    first = next(iter(ds))
+    block_ids = first["block_ids"].tolist()
+    assert all(b2 >= b1 for b1, b2 in zip(block_ids, block_ids[1:]))
+
+
+def test_folded_dataset_train_val_split_both_nonempty():
+    tok = _tokenizer_with_gist()
+    gids = gist_token_ids(tok, 2)
+    train_ds = FoldedTokenBlockDataset(
+        SAMPLE_DOCS, tok, window_len=32, gist_ids=gids, fold_block_size=10, val_fraction=0.2, split="train"
+    )
+    val_ds = FoldedTokenBlockDataset(
+        SAMPLE_DOCS, tok, window_len=32, gist_ids=gids, fold_block_size=10, val_fraction=0.2, split="val"
+    )
+    assert len(list(train_ds)) > 0
+    assert len(list(val_ds)) > 0

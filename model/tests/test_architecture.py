@@ -161,6 +161,166 @@ def test_causality_future_tokens_do_not_affect_earlier_logits():
     assert torch.allclose(logits_full[:, :-1], logits_modified[:, :-1], atol=1e-5)
 
 
+def test_attn_mask_none_matches_prior_is_causal_behavior():
+    """Regression test: passing attn_mask=None must produce bit-identical
+    logits to an explicit all-causal boolean mask -- the Phase 2 folding
+    change (model/folding.py) must not alter ordinary Phase 1 behavior."""
+    cfg = BNAIConfig(vocab_size=50, d_model=16, n_layers=2, n_heads=4, ffn_hidden=32, context_len=16)
+    model = BNAILanguageModel(cfg)
+    model.eval()
+
+    torch.manual_seed(0)
+    input_ids = torch.randint(0, cfg.vocab_size, (1, 8))
+    with torch.no_grad():
+        logits_default, _ = model(input_ids)
+
+        causal_mask = torch.tril(torch.ones(8, 8, dtype=torch.bool))
+        logits_explicit, _ = model(input_ids, attn_mask=causal_mask)
+
+    assert torch.allclose(logits_default, logits_explicit, atol=1e-6)
+
+
+def test_segment_conditioning_mask_hides_raw_tokens_of_earlier_block():
+    """The core correctness property of context-folding (spec Section 2.2):
+    a later block must not directly attend to an earlier block's raw
+    tokens, only its gist token(s). Isolated to a single-layer model so the
+    check is a direct statement about the attention mask itself: with only
+    one layer, position 4's attention output is a function of the *input*
+    embeddings at each visible key position, not of any pooled/propagated
+    representation -- so if position 4 could see position 0 at all, this
+    would show up as a direct dependency here. (With 2+ layers, a change to
+    an early raw token legitimately reaches later blocks *through* the gist
+    token's pooled representation -- that's the mechanism working as
+    intended, not a leak; see the companion test below.)"""
+    from folding import build_segment_conditioning_mask
+
+    cfg = BNAIConfig(vocab_size=50, d_model=16, n_layers=1, n_heads=4, ffn_hidden=32, context_len=32)
+    model = BNAILanguageModel(cfg)
+    model.eval()
+
+    # block 0: 3 raw tokens + 1 gist token (positions 0-3); block 1: 3 raw tokens (positions 4-6).
+    block_ids = torch.tensor([0, 0, 0, 0, 1, 1, 1])
+    is_gist = torch.tensor([False, False, False, True, False, False, False])
+    mask = build_segment_conditioning_mask(block_ids, is_gist)
+
+    torch.manual_seed(1)
+    input_ids = torch.randint(0, cfg.vocab_size, (1, 7))
+
+    with torch.no_grad():
+        logits_base, _ = model(input_ids, attn_mask=mask)
+
+        # Changing a RAW token in block 0 (position 0) must not move block 1's logits.
+        changed_raw = input_ids.clone()
+        changed_raw[0, 0] = (changed_raw[0, 0] + 1) % cfg.vocab_size
+        logits_changed_raw, _ = model(changed_raw, attn_mask=mask)
+        assert torch.allclose(logits_base[:, 4:], logits_changed_raw[:, 4:], atol=1e-5)
+
+        # Changing block 0's GIST token (position 3) must move block 1's logits.
+        changed_gist = input_ids.clone()
+        changed_gist[0, 3] = (changed_gist[0, 3] + 1) % cfg.vocab_size
+        logits_changed_gist, _ = model(changed_gist, attn_mask=mask)
+        assert not torch.allclose(logits_base[:, 4:], logits_changed_gist[:, 4:], atol=1e-5)
+
+
+def test_gist_token_legitimately_propagates_earlier_block_info_across_layers():
+    """With 2+ layers, a gist token's own representation is built from its
+    block's raw tokens (spec 2.2: "gist tokens attend to all raw tokens in
+    that block"), and that pooled representation *does* reach later blocks
+    -- this is gisting actually working, not a masking leak. Contrast with
+    the single-layer test above, which isolates the direct (non-pooled)
+    attention path and confirms that one stays blocked."""
+    from folding import build_segment_conditioning_mask
+
+    cfg = BNAIConfig(vocab_size=50, d_model=16, n_layers=2, n_heads=4, ffn_hidden=32, context_len=32)
+    model = BNAILanguageModel(cfg)
+    model.eval()
+
+    block_ids = torch.tensor([0, 0, 0, 0, 1, 1, 1])
+    is_gist = torch.tensor([False, False, False, True, False, False, False])
+    mask = build_segment_conditioning_mask(block_ids, is_gist)
+
+    torch.manual_seed(1)
+    input_ids = torch.randint(0, cfg.vocab_size, (1, 7))
+
+    with torch.no_grad():
+        logits_base, _ = model(input_ids, attn_mask=mask)
+        changed_raw = input_ids.clone()
+        changed_raw[0, 0] = (changed_raw[0, 0] + 1) % cfg.vocab_size
+        logits_changed_raw, _ = model(changed_raw, attn_mask=mask)
+
+    assert not torch.allclose(logits_base[:, 4:], logits_changed_raw[:, 4:], atol=1e-5)
+
+
+def test_segment_conditioning_mask_still_causal_within_block():
+    """Within-block causality must still hold under a fold mask -- changing
+    a later raw token in the same block must not affect an earlier position's
+    logits (the fold mask adds an extra exclusion, it doesn't relax the
+    baseline causal constraint)."""
+    from folding import build_segment_conditioning_mask
+
+    cfg = BNAIConfig(vocab_size=50, d_model=16, n_layers=2, n_heads=4, ffn_hidden=32, context_len=32)
+    model = BNAILanguageModel(cfg)
+    model.eval()
+
+    block_ids = torch.tensor([0, 0, 0, 0])
+    is_gist = torch.tensor([False, False, False, True])
+    mask = build_segment_conditioning_mask(block_ids, is_gist)
+
+    torch.manual_seed(2)
+    input_ids = torch.randint(0, cfg.vocab_size, (1, 4))
+    with torch.no_grad():
+        logits_base, _ = model(input_ids, attn_mask=mask)
+        modified = input_ids.clone()
+        modified[0, -1] = (modified[0, -1] + 1) % cfg.vocab_size
+        logits_modified, _ = model(modified, attn_mask=mask)
+
+    assert torch.allclose(logits_base[:, :-1], logits_modified[:, :-1], atol=1e-5)
+
+
+def test_batched_segment_conditioning_mask_works_in_model_forward():
+    """A batch where each row has different block boundaries (e.g.
+    different documents packed into the same window) must produce finite,
+    correctly-shaped logits using the batched mask builder."""
+    from folding import build_batched_segment_conditioning_mask
+
+    cfg = BNAIConfig(vocab_size=50, d_model=16, n_layers=2, n_heads=4, ffn_hidden=32, context_len=32)
+    model = BNAILanguageModel(cfg)
+    model.eval()
+
+    block_ids = torch.tensor([[0, 0, 1, 1, 1], [0, 0, 0, 1, 1]])
+    is_gist = torch.tensor([[False, True, False, False, False], [False, False, True, False, False]])
+    mask = build_batched_segment_conditioning_mask(block_ids, is_gist)
+
+    input_ids = torch.randint(0, cfg.vocab_size, (2, 5))
+    with torch.no_grad():
+        logits, _ = model(input_ids, attn_mask=mask)
+
+    assert logits.shape == (2, 5, cfg.vocab_size)
+    assert torch.isfinite(logits).all()
+
+
+def test_folded_sequence_can_exceed_context_len_with_mask():
+    """Phase 2 folded training sequences are deliberately longer (in raw
+    physical token count) than context_len -- the context_len guard only
+    applies to ordinary (attn_mask=None) usage."""
+    from folding import build_segment_conditioning_mask
+
+    cfg = BNAIConfig(vocab_size=50, d_model=16, n_layers=1, n_heads=4, ffn_hidden=32, context_len=8)
+    model = BNAILanguageModel(cfg)
+
+    seq_len = 12  # exceeds context_len=8
+    block_ids = torch.tensor([0] * 6 + [1] * 6)
+    is_gist = torch.tensor([False] * 5 + [True] + [False] * 5 + [True])
+    mask = build_segment_conditioning_mask(block_ids, is_gist)
+
+    input_ids = torch.randint(0, cfg.vocab_size, (1, seq_len))
+    logits, _ = model(input_ids, attn_mask=mask)  # must not raise
+    assert logits.shape == (1, seq_len, cfg.vocab_size)
+
+    with pytest.raises(ValueError):
+        model(input_ids)  # but ordinary usage (no mask) still enforces context_len
+
+
 def test_initial_loss_is_close_to_uniform_random_baseline():
     """A freshly initialized model should predict roughly uniformly over the
     vocab, i.e. initial loss ~= ln(vocab_size). A much larger loss usually
