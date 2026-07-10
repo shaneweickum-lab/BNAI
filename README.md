@@ -128,6 +128,25 @@ Two artifacts exist for this, kept deliberately separate:
   built. Open it directly in a browser; it has no build step and touches
   nothing else in this repo.
 
+## Web demo: chat app shell
+
+`/demo` is a Claude/Gemini-style app shell, not a single hardcoded chat:
+a left drawer for new-chat/history/projects, a right drawer that turns
+this project's own engineering facts (params, packed size, compression
+ratio, live tokens/sec, AIML-resolved ratio, an energy-vs-cloud-tier
+comparison) into a live showcase panel rather than static prose, and
+support for attaching plain-text-ish files (`.txt`/`.md`/`.json`/`.csv`/
+`.log`) whose content is folded into the conversation.
+
+**Chat history and projects persist locally, via the browser's
+`localStorage`** (`web/lib/store/`) — a small but real change from earlier
+in this project's build: previously nothing persisted at all. Nothing
+about the "100% client-side, no server calls" story changes — persistence
+here means *only* "survives a page reload," not "saved anywhere off your
+device." Clearing your browser's site data for this page removes it, same
+as any other client-side-only web app. There are still no accounts, no
+server-side persistence, and no analytics.
+
 ## Retrain / re-export / redeploy, end to end
 
 This is the full path from empty checkpoints to a live demo with a real,

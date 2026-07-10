@@ -11,7 +11,7 @@ import {
   TOTAL_PARAMS,
   TRAINING_BUDGET_TOKENS,
   formatParams,
-} from "../../lib/modelInfo";
+} from "../../../lib/modelInfo";
 
 const REPO_URL = "https://github.com/shaneweickum-lab/bnai";
 

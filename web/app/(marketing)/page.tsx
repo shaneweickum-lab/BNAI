@@ -12,7 +12,7 @@ import {
   TOTAL_PARAMS,
   TRAINING_BUDGET_TOKENS,
   formatParams,
-} from "../lib/modelInfo";
+} from "../../lib/modelInfo";
 
 export default function Home() {
   const fp16Pct = 100;
