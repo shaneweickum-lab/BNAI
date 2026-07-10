@@ -3,13 +3,13 @@
  *
  * Checks:
  *  - WebAssembly + WASM SIMD support (the real Rust runtime is expected to
- *    be compiled with SIMD enabled for acceptable throughput on a 75M-param
+ *    be compiled with SIMD enabled for acceptable throughput on a 123.7M-param
  *    model; without it, generation would be unusably slow).
  *  - Safari version on iOS: pre-16.4 iOS Safari lacks WASM SIMD entirely,
  *    so we explicitly flag it as unsupported rather than let it silently
  *    fail or run at a crawl.
  *  - Web Worker + Cache API availability (needed for off-main-thread
- *    inference and for not re-downloading the 48MB model every visit).
+ *    inference and for not re-downloading the ~69MB model every visit).
  */
 
 export interface BrowserSupportResult {

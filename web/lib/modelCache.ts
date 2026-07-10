@@ -1,7 +1,7 @@
 /**
  * Fetches a (potentially large) static asset with real download-progress
  * reporting, using the browser Cache API so repeat visits skip re-downloading
- * the 48MB model file entirely.
+ * the ~69MB model file entirely.
  *
  * This runs inside the Web Worker (workers/inference.worker.ts), which has
  * access to both `fetch` and `caches`.

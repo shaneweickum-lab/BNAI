@@ -1,0 +1,61 @@
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.chipRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 4px 6px 4px 12px;
+  background: var(--code-bg);
+  font-size: 0.8rem;
+  color: var(--fg);
+}
+
+.chipName {
+  font-family: var(--font-mono);
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chipRemove {
+  background: none;
+  border: none;
+  color: var(--fg-muted);
+  cursor: pointer;
+  font-size: 0.95rem;
+  line-height: 1;
+  padding: 2px 6px;
+  border-radius: 999px;
+}
+
+.chipRemove:hover {
+  color: var(--danger);
+}
+
+.error {
+  color: var(--danger);
+  font-size: 0.8rem;
+}
+
+.attachButton {
+  align-self: flex-start;
+  padding: 6px 14px;
+  font-size: 0.82rem;
+}
+
+.hiddenInput {
+  display: none;
+}

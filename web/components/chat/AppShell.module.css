@@ -1,0 +1,164 @@
+.shell {
+  --drawer-width: 300px;
+  height: 100dvh;
+  width: 100%;
+  display: flex;
+  overflow: hidden;
+  position: relative;
+  background: var(--bg);
+}
+
+.drawer {
+  width: 0;
+  flex-shrink: 0;
+  overflow: hidden;
+  background: var(--bg-elevated);
+  transition: width 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.drawerOpen {
+  width: var(--drawer-width);
+}
+
+.leftDrawer {
+  border-right: 1px solid var(--border);
+}
+
+.rightDrawer {
+  border-left: 1px solid var(--border);
+}
+
+.drawerInner {
+  width: var(--drawer-width);
+  height: 100%;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.topBar {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-elevated);
+}
+
+.brand {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  color: var(--fg);
+  font-weight: 700;
+  font-size: 1.05rem;
+}
+
+.brand:hover {
+  text-decoration: none;
+}
+
+.brandSubtitle {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--fg-muted);
+  font-weight: 500;
+}
+
+.topBarToggles {
+  display: flex;
+  gap: 8px;
+}
+
+.toggleButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--fg-muted);
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+.toggleButton:hover {
+  color: var(--fg);
+  border-color: var(--accent);
+}
+
+.toggleButtonActive {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.content {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.edgeTab {
+  position: fixed;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--border);
+  background: var(--bg-elevated);
+  color: var(--fg-muted);
+  padding: 10px 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: transform 0.2s ease, color 0.15s ease;
+}
+
+.edgeTab:hover {
+  color: var(--accent);
+}
+
+.edgeTabLeft {
+  left: 0;
+  border-radius: 0 8px 8px 0;
+  transform: translateY(-50%);
+}
+
+.edgeTabLeft.edgeTabOpen {
+  transform: translateY(-50%) translateX(var(--drawer-width));
+}
+
+.edgeTabRight {
+  right: 0;
+  border-radius: 8px 0 0 8px;
+  transform: translateY(-50%);
+}
+
+.edgeTabRight.edgeTabOpen {
+  transform: translateY(-50%) translateX(calc(-1 * var(--drawer-width)));
+}
+
+@media (max-width: 720px) {
+  .shell {
+    --drawer-width: 82vw;
+  }
+}
