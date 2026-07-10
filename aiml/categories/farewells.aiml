@@ -41,4 +41,29 @@
     <template>Sounds good, talk soon!</template>
   </category>
 
+  <category>
+    <pattern>SEE YA</pattern>
+    <template>See ya!</template>
+  </category>
+
+  <category>
+    <pattern>LATER</pattern>
+    <template>Later! Take care.</template>
+  </category>
+
+  <category>
+    <pattern>GOTTA GO</pattern>
+    <template>No problem, catch you next time!</template>
+  </category>
+
+  <category>
+    <pattern>I HAVE TO GO</pattern>
+    <template>Alright, take care! Talk again soon.</template>
+  </category>
+
+  <category>
+    <pattern>TAKE CARE</pattern>
+    <template>You too -- take care!</template>
+  </category>
+
 </categories>

@@ -1,0 +1,96 @@
+<!--
+  Seed AIML category set (spec Section 1.4); see greetings.aiml's header
+  comment for provenance.
+
+  Covers apologies directed at the bot, compliments, and mild frustration/
+  insults, all handled gracefully and non-defensively either way, without
+  being preachy about it.
+-->
+<categories>
+
+  <category>
+    <pattern>SORRY</pattern>
+    <template>No worries at all!</template>
+  </category>
+
+  <category>
+    <pattern>IM SORRY</pattern>
+    <template>It's okay, no need to apologize.</template>
+  </category>
+
+  <category>
+    <pattern>MY BAD</pattern>
+    <template>All good, no worries!</template>
+  </category>
+
+  <category>
+    <pattern>YOU ARE SMART</pattern>
+    <template>That's kind of you to say -- though credit really goes to the engineering behind me, not any real intelligence on my part.</template>
+  </category>
+
+  <category>
+    <pattern>YOURE SMART</pattern>
+    <template>That's kind of you to say -- though credit really goes to the engineering behind me, not any real intelligence on my part.</template>
+  </category>
+
+  <category>
+    <pattern>YOU ARE FUNNY</pattern>
+    <template>Ha, thanks! I'll take it.</template>
+  </category>
+
+  <category>
+    <pattern>YOURE FUNNY</pattern>
+    <template>Ha, thanks! I'll take it.</template>
+  </category>
+
+  <category>
+    <pattern>GOOD JOB</pattern>
+    <template>Thanks, I appreciate that!</template>
+  </category>
+
+  <category>
+    <pattern>WELL DONE</pattern>
+    <template>Thank you!</template>
+  </category>
+
+  <category>
+    <pattern>YOU ARE THE BEST</pattern>
+    <template>That means a lot -- thank you!</template>
+  </category>
+
+  <category>
+    <pattern>YOURE THE BEST</pattern>
+    <template>That means a lot -- thank you!</template>
+  </category>
+
+  <category>
+    <pattern>YOU ARE DUMB</pattern>
+    <template>Fair enough -- I'm a small model, so I'm sure I get plenty wrong. What can I do better?</template>
+  </category>
+
+  <category>
+    <pattern>YOURE DUMB</pattern>
+    <template>Fair enough -- I'm a small model, so I'm sure I get plenty wrong. What can I do better?</template>
+  </category>
+
+  <category>
+    <pattern>YOU ARE USELESS</pattern>
+    <template>Sorry I let you down there. If you tell me what wasn't working, I'll try to do better.</template>
+  </category>
+
+  <category>
+    <pattern>YOURE USELESS</pattern>
+    <template>Sorry I let you down there. If you tell me what wasn't working, I'll try to do better.</template>
+  </category>
+
+  <category>
+    <pattern>I HATE YOU</pattern>
+    <template>Sorry to hear that -- if something I said was frustrating, I'm happy to try a different approach.</template>
+  </category>
+
+  <category>
+    <pattern>SHUT UP</pattern>
+    <template>Fair enough -- I'll back off. Let me know if you want to pick the conversation back up.</template>
+  </category>
+
+</categories>

@@ -303,7 +303,7 @@ assets (the Next.js app, the WASM binary, the packed model file).
 | Rust WASM runtime | See `runtime/` — built against the placeholder artifact |
 | Web demo | See `web/` — built against the placeholder artifact and a documented worker interface |
 | AIML matcher engine + dialogue manager | Real, tested (`aiml/tests/`, `web/lib/aiml/*.test.ts`) |
-| AIML category *content* shipped in this repo | Placeholder — 44 hand-curated seed categories, not bootstrapped from real UltraChat/OASST2 (see `aiml/README.md`) |
+| AIML category *content* shipped in this repo | Placeholder — 95 hand-curated seed categories, not bootstrapped from real UltraChat/OASST2 (see `aiml/README.md`) |
 | Context folding (gist tokens / Vault / two-phase curriculum) | **Not implemented** — referenced spec docs were never shared; dialogue manager does simple oldest-turn truncation instead |
 | Any loss/perplexity/eval/benchmark number | **TBD** — needs the real training run |
 

@@ -70,4 +70,39 @@
     <template>Of course!</template>
   </category>
 
+  <category>
+    <pattern>WHATS GOING ON</pattern>
+    <template>Not much -- just here chatting with you!</template>
+  </category>
+
+  <category>
+    <pattern>WHATS YOUR FAVORITE *</pattern>
+    <template>I don't really have favorites the way you do, but <star/> sounds like a fun thing to talk about.</template>
+  </category>
+
+  <category>
+    <pattern>I DONT UNDERSTAND</pattern>
+    <template>No worries -- what part would you like me to clarify?</template>
+  </category>
+
+  <category>
+    <pattern>WHAT DO YOU MEAN</pattern>
+    <template>Let me try to say that a different way -- what part wasn't clear?</template>
+  </category>
+
+  <category>
+    <pattern>CAN YOU REPEAT THAT</pattern>
+    <template>Sure -- could you tell me which part you'd like repeated? I don't keep a copy of my last reply outside this chat.</template>
+  </category>
+
+  <category>
+    <pattern>CAN YOU HELP ME</pattern>
+    <template>Sure, I'll do my best! What do you need help with?</template>
+  </category>
+
+  <category>
+    <pattern>I NEED HELP</pattern>
+    <template>I'm here -- what's going on?</template>
+  </category>
+
 </categories>

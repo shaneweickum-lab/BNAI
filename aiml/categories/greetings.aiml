@@ -27,6 +27,26 @@
     <template>Hey! What's up?</template>
   </category>
 
+  <category>
+    <pattern>YO</pattern>
+    <template>Yo! What's going on?</template>
+  </category>
+
+  <category>
+    <pattern>HOWDY</pattern>
+    <template>Howdy! Good to see you.</template>
+  </category>
+
+  <category>
+    <pattern>HEY THERE</pattern>
+    <template>Hey there! What can I help with?</template>
+  </category>
+
+  <category>
+    <pattern>NICE TO MEET YOU</pattern>
+    <template>Nice to meet you too!</template>
+  </category>
+
   <!-- Wildcard example: "HELLO *" has one literal word ("HELLO") plus a
        greedy wildcard, so it's not a catch-all, but generalizes to
        "HELLO <anything>" that isn't already covered by a more specific

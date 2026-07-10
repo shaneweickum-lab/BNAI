@@ -1,10 +1,11 @@
 /**
  * Sanity-checks the matcher against the real, compiled
- * lib/aiml/generated/categories.json (44 hand-authored categories spanning
- * greetings/small-talk/emotional-checkins/meta-questions/farewells) -- not
- * just the hand-built fixtures used elsewhere in this directory's tests.
- * This is what actually ships to app/demo/page.tsx, so it's worth a direct
- * check that real data behaves as expected end-to-end.
+ * lib/aiml/generated/categories.json (a hand-authored seed set spanning
+ * greetings/small-talk/emotional-checkins/meta-questions/farewells/
+ * capabilities-and-limits/politeness) -- not just the hand-built fixtures
+ * used elsewhere in this directory's tests. This is what actually ships to
+ * app/demo/page.tsx, so it's worth a direct check that real data behaves
+ * as expected end-to-end.
  */
 
 import { describe, expect, it } from "vitest";
@@ -54,5 +55,26 @@ describe("match against the real compiled categories.json", () => {
 
     // The two "SEE YOU" categories must actually be different categories.
     expect(turn2InFarewell.category.id).not.toBe(turn2NoTopic.category.id);
+  });
+
+  it("gives an honest capability deflection rather than a made-up fact", () => {
+    const result = match("WHAT TIME IS IT", { lastBotUtterance: "", topic: null }, categories);
+    expect(result.kind).toBe("single");
+    if (result.kind !== "single") throw new Error("expected single");
+    expect(result.response.toLowerCase()).toContain("clock");
+  });
+
+  it("resolves a wildcard capability pattern (weather-by-location)", () => {
+    const result = match("WHATS THE WEATHER IN TOKYO", { lastBotUtterance: "", topic: null }, categories);
+    expect(result.kind).toBe("single");
+    if (result.kind !== "single") throw new Error("expected single");
+    expect(result.response).toContain("TOKYO");
+  });
+
+  it("handles a compliment directed at the bot", () => {
+    const result = match("YOURE SMART", { lastBotUtterance: "", topic: null }, categories);
+    expect(result.kind).toBe("single");
+    if (result.kind !== "single") throw new Error("expected single");
+    expect(result.response.length).toBeGreaterThan(0);
   });
 });
